@@ -7,5 +7,20 @@
     "@freestyle-sh/with-type-run-code": "workspace:^"
   },
   "type": "module",
-  "main": "index.ts"
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "source": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pkgroll",
+    "prepublishOnly": "pnpm run build"
+  }
 }

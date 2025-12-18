@@ -6,5 +6,21 @@
     "freestyle-sandboxes": "^0.1.1",
     "@freestyle-sh/with-type-js": "workspace:^"
   },
-  "type": "module"
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "source": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pkgroll",
+    "prepublishOnly": "pnpm run build"
+  }
 }
