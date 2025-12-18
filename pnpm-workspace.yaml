@@ -1,3 +1,4 @@
 packages:
   - "with-nodejs"
+  - "with-python"
   - "types/*"

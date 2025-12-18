@@ -1,0 +1,27 @@
+{
+    "name": "@freestyle-sh/with-python",
+    "version": "0.1.0",
+    "packageManager": "pnpm@10.11.0",
+    "private": false,
+    "dependencies": {
+        "freestyle-sandboxes": "^0.1.2",
+        "@freestyle-sh/with-type-run-code": "workspace:^"
+    },
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "source": "./src/index.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "pkgroll",
+        "prepublishOnly": "pnpm run build"
+    }
+}

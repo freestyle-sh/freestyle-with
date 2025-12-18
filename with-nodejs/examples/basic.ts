@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { freestyle } from "freestyle-sandboxes";
-import { VmNodeJs } from "../index.ts";
+import { VmNodeJs } from "../src/index.ts";
 
 const { vm } = await freestyle.vms.create({
   with: {
