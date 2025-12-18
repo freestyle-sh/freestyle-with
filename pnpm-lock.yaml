@@ -33,14 +33,14 @@ importers:
         specifier: workspace:^
         version: link:../with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
 
   types/with-type-run-code:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
 
   with-nodejs:
     dependencies:
@@ -48,8 +48,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
 
 packages:
 
@@ -708,8 +708,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  freestyle-sandboxes@0.1.1:
-    resolution: {integrity: sha512-RJCnHZ9S2hSnPwuO7KiKtDS0FzTNFVqZ2wZhidYyWo9aBk9O9pRXKGbHAJop6g6afDSG5u3KLX1ETXkNL/AZUQ==}
+  freestyle-sandboxes@0.1.2:
+    resolution: {integrity: sha512-JSdAOXYeDJJIktgYMdom5crVF750Z6y7KRUEMlfvAy5NzKk6GMzUG7hDKB5ni3nf0bEQwGisOBRZI+RIqVcPGA==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1578,7 +1578,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  freestyle-sandboxes@0.1.1: {}
+  freestyle-sandboxes@0.1.2: {}
 
   fsevents@2.3.3:
     optional: true
