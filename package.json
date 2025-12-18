@@ -1,0 +1,15 @@
+{
+  "name": "freestyle-with",
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "@types/eslint": "^9.6.1",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.2",
+    "typescript-eslint": "^8.18.2"
+  },
+  "type": "module",
+  "scripts": {
+    "lint": "eslint ."
+  }
+}

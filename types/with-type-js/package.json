@@ -1,0 +1,11 @@
+{
+  "name": "@freestyle-sh/with-type-js",
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "freestyle-sandboxes": "^0.1.1",
+    "@freestyle-sh/with-type-run-code": "workspace:^"
+  },
+  "type": "module",
+  "main": "index.ts"
+}

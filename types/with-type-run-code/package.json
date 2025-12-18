@@ -1,0 +1,10 @@
+{
+  "name": "@freestyle-sh/with-type-run-code",
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "freestyle-sandboxes": "^0.1.1"
+  },
+  "type": "module",
+  "main": "index.ts"
+}
