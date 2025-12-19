@@ -42,6 +42,15 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
 
+  with-bun:
+    dependencies:
+      '@freestyle-sh/with-type-js':
+        specifier: workspace:^
+        version: link:../types/with-type-js
+      freestyle-sandboxes:
+        specifier: ^0.1.2
+        version: 0.1.2
+
   with-java:
     dependencies:
       '@freestyle-sh/with-type-run-code':

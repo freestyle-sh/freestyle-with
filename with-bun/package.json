@@ -1,5 +1,5 @@
 {
-  "name": "@freestyle-sh/with-nodejs",
+  "name": "@freestyle-sh/with-bun",
   "version": "0.1.0",
   "packageManager": "pnpm@10.11.0",
   "private": false,
