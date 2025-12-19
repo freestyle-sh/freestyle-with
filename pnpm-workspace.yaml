@@ -1,5 +1,6 @@
 packages:
   - "with-nodejs"
+  - "with-bun"
   - "with-python"
   - "with-java"
   - "with-postgres"
