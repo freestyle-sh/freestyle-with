@@ -2,4 +2,5 @@ packages:
   - "with-nodejs"
   - "with-python"
   - "with-java"
+  - "with-postgres"
   - "types/*"
