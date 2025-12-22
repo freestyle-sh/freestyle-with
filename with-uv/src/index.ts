@@ -1,0 +1,115 @@
+import {
+  VmTemplate,
+  type CreateVmOptions,
+  VmWith,
+  VmWithInstance,
+} from "freestyle-sandboxes";
+import type {
+  JSONValue,
+  RunCodeResponse,
+  VmRunCodeInstance,
+  VmRunCode,
+} from "@freestyle-sh/with-type-run-code";
+
+type UvOptions = { version?: string; pythonVersion?: string };
+type UvResolvedOptions = { version?: string; pythonVersion: string };
+
+export class VmUv
+  extends VmWith<VmUvInstance>
+  implements VmRunCode<VmRunCodeInstance>
+{
+  options: UvResolvedOptions;
+
+  constructor(options?: UvOptions) {
+    super();
+    this.options = {
+      version: options?.version,
+      pythonVersion: options?.pythonVersion ?? "3.12",
+    };
+  }
+
+  override configure(
+    existingConfig: CreateVmOptions
+  ): CreateVmOptions | Promise<CreateVmOptions> {
+    const versionArg = this.options.version
+      ? `UV_VERSION="${this.options.version}" `
+      : "";
+
+    const installScript = `#!/bin/bash
+set -e
+export UV_INSTALL_DIR="/opt/uv/bin"
+${versionArg}curl -LsSf https://astral.sh/uv/install.sh | sh
+/opt/uv/bin/uv python install ${this.options.pythonVersion}
+/opt/uv/bin/uv --version
+`;
+
+    const uvInit = `export PATH="/opt/uv/bin:$PATH"
+`;
+
+    const uvConfig: CreateVmOptions = {
+      template: new VmTemplate({
+        additionalFiles: {
+          "/opt/install-uv.sh": {
+            content: installScript,
+          },
+          "/etc/profile.d/uv.sh": {
+            content: uvInit,
+          },
+        },
+        systemd: {
+          services: [
+            {
+              name: "install-uv",
+              mode: "oneshot",
+              deleteAfterSuccess: true,
+              exec: ["bash /opt/install-uv.sh"],
+              timeoutSec: 300,
+            },
+          ],
+        },
+      }),
+    };
+
+    return this.compose(existingConfig, uvConfig);
+  }
+
+  createInstance(): VmUvInstance {
+    return new VmUvInstance(this);
+  }
+
+  installServiceName(): string {
+    return "install-uv.service";
+  }
+}
+
+class VmUvInstance extends VmWithInstance implements VmRunCodeInstance {
+  builder: VmUv;
+
+  constructor(builder: VmUv) {
+    super();
+    this.builder = builder;
+  }
+
+  async runCode<Result extends JSONValue = any>(
+    code: string
+  ): Promise<RunCodeResponse<Result>> {
+    const result = await this.vm.exec({
+      command: `/opt/uv/bin/uv run python -c "${code.replace(/"/g, '\\"')}"`,
+    });
+
+    let parsedResult = undefined;
+
+    if (result.stdout) {
+      try {
+        parsedResult = JSON.parse(result.stdout);
+      } catch (e) {}
+    }
+
+    return {
+      result: parsedResult,
+      stdout: result.stdout ?? undefined,
+      stderr: result.stderr ?? undefined,
+      statusCode: result.statusCode ?? -1,
+    };
+  }
+}
