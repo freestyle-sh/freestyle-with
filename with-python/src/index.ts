@@ -45,9 +45,11 @@ class PythonRuntimeInstance
     this.builder = builder;
   }
 
-  async runCode<Result extends JSONValue = any>(
-    code: string
-  ): Promise<RunCodeResponse<Result>> {
+  async runCode<Result extends JSONValue = any>({
+    code,
+  }: {
+    code: string;
+  }): Promise<RunCodeResponse<Result>> {
     const result = await this.vm.exec({
       command: `python3 -c "${code.replace(/"/g, '\\"')}"`,
     });

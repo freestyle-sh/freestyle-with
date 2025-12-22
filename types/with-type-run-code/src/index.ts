@@ -19,7 +19,9 @@ export type JSONValue =
   | Array<JSONValue>; // Array of JSON values
 
 export interface VmRunCodeInstance extends VmWithInstance {
-  runCode<Result extends JSONValue>(
-    code: string
-  ): Promise<RunCodeResponse<Result>>;
+  runCode<Result extends JSONValue>({
+    code,
+  }: {
+    code: string;
+  }): Promise<RunCodeResponse<Result>>;
 }

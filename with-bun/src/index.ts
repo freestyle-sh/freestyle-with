@@ -93,9 +93,11 @@ class VmBunInstance
     this.builder = builder;
   }
 
-  async runCode<Result extends JSONValue = any>(
-    code: string
-  ): Promise<RunCodeResponse<Result>> {
+  async runCode<Result extends JSONValue = any>({
+    code,
+  }: {
+    code: string;
+  }): Promise<RunCodeResponse<Result>> {
     const result = await this.vm.exec({
       command: `/opt/bun/bin/bun -e "${code.replace(/"/g, '\\"')}"`,
     });
