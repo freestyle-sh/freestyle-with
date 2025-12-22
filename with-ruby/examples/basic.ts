@@ -8,8 +8,8 @@ const { vm } = await freestyle.vms.create({
   },
 });
 
-const res = await vm.ruby.runCode(
-  "require 'json'; puts JSON.generate({ hello: 'world' })"
-);
+const res = await vm.ruby.runCode({
+  code: "require 'json'; puts JSON.generate({ hello: 'world' })"
+});
 
 console.log(res);

@@ -20,9 +20,9 @@ const { vm } = await freestyle.vms.create({
   },
 });
 
-const res = await vm.js.runCode(
-  "console.log(JSON.stringify({ hello: 'world' }));"
-);
+const res = await vm.js.runCode({
+  code: "console.log(JSON.stringify({ hello: 'world' }));"
+});
 
 console.log(res);
 // { result: { hello: 'world' }, stdout: '{"hello":"world"}\n', statusCode: 0 }
@@ -42,7 +42,7 @@ new VmBun({
 
 ## API
 
-### `vm.js.runCode(code: string)`
+### `vm.js.runCode({ code: string })`
 
 Executes JavaScript/TypeScript code in the Bun runtime.
 

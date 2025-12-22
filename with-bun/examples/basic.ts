@@ -8,8 +8,8 @@ const { vm } = await freestyle.vms.create({
   },
 });
 
-const res = await vm.js.runCode(
-  "console.log(JSON.stringify({ hello: 'world' }));"
-);
+const res = await vm.js.runCode({
+  code: "console.log(JSON.stringify({ hello: 'world' }));"
+});
 
 console.log(res);

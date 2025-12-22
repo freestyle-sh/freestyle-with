@@ -20,9 +20,9 @@ const { vm } = await freestyle.vms.create({
   },
 });
 
-const res = await vm.uv.runCode(
-  "import json; print(json.dumps({ 'hello': 'world' }))"
-);
+const res = await vm.uv.runCode({
+  code: "import json; print(json.dumps({ 'hello': 'world' }))"
+});
 
 console.log(res);
 // { result: { hello: 'world' }, stdout: '{"hello": "world"}\n', statusCode: 0 }
@@ -44,7 +44,7 @@ new VmUv({
 
 ## API
 
-### `vm.uv.runCode(code: string)`
+### `vm.uv.runCode({ code: string })`
 
 Executes Python code using uv's managed Python runtime.
 

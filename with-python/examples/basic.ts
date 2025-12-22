@@ -8,8 +8,8 @@ const { vm } = await freestyle.vms.create({
   },
 });
 
-const res = await vm.python.runCode(
-  "import json; print(json.dumps({'hello': 'world'}))"
-);
+const res = await vm.python.runCode({
+  code: "import json; print(json.dumps({'hello': 'world'}))"
+});
 
 console.log(res);
