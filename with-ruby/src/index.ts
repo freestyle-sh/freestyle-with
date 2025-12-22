@@ -19,19 +19,12 @@ export type InstallResult = {
 
 export type InstallOptions =
   | {
-      global: true;
-      deps: string[];
-    }
-  | {
-      global?: false;
       deps: string[] | Record<string, string>;
       directory?: string;
-      dev?: boolean;
     }
   | {
       directory?: string;
       deps?: undefined;
-      global?: undefined;
     };
 
 type RubyOptions = { version?: string };
@@ -137,23 +130,18 @@ class RubyRuntimeInstance
 
   async install(options?: InstallOptions): Promise<InstallResult> {
     const gemPath = `/usr/local/rvm/rubies/ruby-${this.builder.options.version}/bin/gem`;
+    const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
 
     let command: string;
 
-    if (options?.global) {
-      command = `${gemPath} install ${options.deps.join(" ")}`;
+    if (!options?.deps) {
+      // Install from Gemfile
+      command = `${cdPrefix}bundle install`;
     } else {
-      const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
-
-      if (!options?.deps) {
-        // Install from Gemfile
-        command = `${cdPrefix}bundle install`;
-      } else {
-        const deps = Array.isArray(options.deps)
-          ? options.deps
-          : Object.entries(options.deps).map(([pkg, ver]) => `${pkg}:${ver}`);
-        command = `${cdPrefix}${gemPath} install ${deps.join(" ")}`;
-      }
+      const deps = Array.isArray(options.deps)
+        ? options.deps
+        : Object.entries(options.deps).map(([pkg, ver]) => `${pkg}:${ver}`);
+      command = `${cdPrefix}${gemPath} install ${deps.join(" ")}`;
     }
 
     const result = await this.vm.exec({ command });
