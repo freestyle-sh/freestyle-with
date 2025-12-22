@@ -9,6 +9,8 @@ import type {
   RunCodeResponse,
   VmJavaScriptRuntimeInstance,
   VmJavaScriptRuntime,
+  InstallOptions,
+  InstallResult,
 } from "@freestyle-sh/with-type-js";
 
 type BunJsOptions = { version?: string; workdir?: string };
@@ -115,6 +117,35 @@ class VmBunInstance
       stdout: result.stdout ?? undefined,
       stderr: result.stderr ?? undefined,
       statusCode: result.statusCode ?? -1,
+    };
+  }
+
+  async install(options?: InstallOptions): Promise<InstallResult> {
+    let command: string;
+
+    if (options?.global) {
+      command = `/opt/bun/bin/bun add -g ${options.deps.join(" ")}`;
+    } else {
+      const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
+
+      if (!options?.deps) {
+        // Install from package.json
+        command = `${cdPrefix}/opt/bun/bin/bun install`;
+      } else {
+        const deps = Array.isArray(options.deps)
+          ? options.deps
+          : Object.entries(options.deps).map(([pkg, ver]) => `${pkg}@${ver}`);
+        const devFlag = options.dev ? " -d" : "";
+        command = `${cdPrefix}/opt/bun/bin/bun add${devFlag} ${deps.join(" ")}`;
+      }
+    }
+
+    const result = await this.vm.exec({ command });
+
+    return {
+      success: result.statusCode === 0,
+      stdout: result.stdout ?? undefined,
+      stderr: result.stderr ?? undefined,
     };
   }
 }

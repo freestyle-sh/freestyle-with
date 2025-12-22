@@ -5,8 +5,13 @@ import type {
   RunCodeResponse,
   JSONValue,
 } from "@freestyle-sh/with-type-run-code";
+import type {
+  VmJsInstallDepsInstance,
+  InstallOptions,
+  InstallResult,
+} from "@freestyle-sh/with-type-js-deps";
 
-export type { RunCodeResponse, JSONValue };
+export type { RunCodeResponse, JSONValue, InstallOptions, InstallResult };
 
 type JavaScriptRuntimeBase<T extends VmWithInstance> = VmWith<T> & VmRunCode<T>;
 
@@ -16,4 +21,6 @@ export interface VmJavaScriptRuntime<
   installServiceName(): string;
 }
 
-export interface VmJavaScriptRuntimeInstance extends VmRunCodeInstance {}
+export interface VmJavaScriptRuntimeInstance
+  extends VmRunCodeInstance,
+    VmJsInstallDepsInstance {}

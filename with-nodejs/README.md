@@ -1,26 +1,26 @@
-# @freestyle-sh/with-bun
+# @freestyle-sh/with-nodejs
 
-Bun runtime for [Freestyle](https://freestyle.sh) VMs.
+Node.js runtime via [NVM](https://github.com/nvm-sh/nvm) for [Freestyle](https://freestyle.sh) VMs.
 
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-bun freestyle-sandboxes
+npm install @freestyle-sh/with-nodejs freestyle-sandboxes
 ```
 
 ## Usage
 
 ```typescript
 import { freestyle } from "freestyle-sandboxes";
-import { VmBun } from "@freestyle-sh/with-bun";
+import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 
 const { vm } = await freestyle.vms.create({
   with: {
-    js: new VmBun(),
+    node: new VmNodeJs(),
   },
 });
 
-const res = await vm.js.runCode({
+const res = await vm.node.runCode({
   code: "console.log(JSON.stringify({ hello: 'world' }));"
 });
 
@@ -31,20 +31,20 @@ console.log(res);
 ## Options
 
 ```typescript
-new VmBun({
-  version: "1.1.0",  // Optional: specific Bun version (default: latest)
+new VmNodeJs({
+  version: "22", // Optional: Node.js version (default: "24")
 })
 ```
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `version` | `string` | `undefined` | Bun version to install. If not specified, installs the latest version. |
+| `version` | `string` | `"24"` | Node.js version to install via NVM. |
 
 ## API
 
-### `vm.js.runCode({ code: string })`
+### `vm.node.runCode({ code: string })`
 
-Executes JavaScript/TypeScript code in the Bun runtime.
+Executes JavaScript code in the Node.js runtime.
 
 **Returns:** `Promise<RunCodeResponse>`
 
@@ -57,28 +57,28 @@ type RunCodeResponse<Result> = {
 };
 ```
 
-### `vm.js.install(options?)`
+### `vm.node.install(options?)`
 
-Installs npm packages using Bun.
+Installs npm packages.
 
 ```typescript
 // Install from package.json in current directory
-await vm.js.install();
+await vm.node.install();
 
 // Install from package.json in specific directory
-await vm.js.install({ directory: "/app" });
+await vm.node.install({ directory: "/app" });
 
 // Install specific packages
-await vm.js.install({ deps: ["lodash", "express"] });
+await vm.node.install({ deps: ["lodash", "express"] });
 
 // Install with specific versions
-await vm.js.install({ deps: { "lodash": "^4.0.0", "express": "~5.0.0" } });
+await vm.node.install({ deps: { "lodash": "^4.0.0", "express": "~5.0.0" } });
 
 // Install as dev dependencies
-await vm.js.install({ deps: ["typescript"], dev: true });
+await vm.node.install({ deps: ["typescript"], dev: true });
 
 // Install globally
-await vm.js.install({ global: true, deps: ["typescript"] });
+await vm.node.install({ global: true, deps: ["typescript"] });
 ```
 
 **Returns:** `Promise<InstallResult>`
@@ -94,5 +94,5 @@ type InstallResult = {
 ## Documentation
 
 - [Freestyle Documentation](https://docs.freestyle.sh)
-- [Bun Documentation](https://bun.sh/docs)
-
+- [Node.js Documentation](https://nodejs.org/docs)
+- [NVM Documentation](https://github.com/nvm-sh/nvm)

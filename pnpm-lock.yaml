@@ -29,9 +29,18 @@ importers:
 
   types/with-type-js:
     dependencies:
+      '@freestyle-sh/with-type-js-deps':
+        specifier: workspace:^
+        version: link:../with-type-js-deps
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../with-type-run-code
+      freestyle-sandboxes:
+        specifier: ^0.1.2
+        version: 0.1.2
+
+  types/with-type-js-deps:
+    dependencies:
       freestyle-sandboxes:
         specifier: ^0.1.2
         version: 0.1.2
