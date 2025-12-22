@@ -5,4 +5,5 @@ packages:
   - "with-java"
   - "with-postgres"
   - "with-uv"
+  - "with-ruby"
   - "types/*"

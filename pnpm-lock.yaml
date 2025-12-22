@@ -84,6 +84,15 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
 
+  with-ruby:
+    dependencies:
+      '@freestyle-sh/with-type-run-code':
+        specifier: workspace:^
+        version: link:../types/with-type-run-code
+      freestyle-sandboxes:
+        specifier: ^0.1.2
+        version: 0.1.2
+
   with-uv:
     dependencies:
       '@freestyle-sh/with-type-run-code':

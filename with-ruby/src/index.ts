@@ -11,58 +11,52 @@ import type {
   VmRunCode,
 } from "@freestyle-sh/with-type-run-code";
 
-type UvOptions = { version?: string; pythonVersion?: string };
-type UvResolvedOptions = { version?: string; pythonVersion: string };
+type RubyOptions = { version?: string };
+type RubyResolvedOptions = { version: string };
 
-export class VmUv
-  extends VmWith<VmUvInstance>
+export class VmRuby
+  extends VmWith<RubyRuntimeInstance>
   implements VmRunCode<VmRunCodeInstance>
 {
-  options: UvResolvedOptions;
+  options: RubyResolvedOptions;
 
-  constructor(options?: UvOptions) {
+  constructor(options?: RubyOptions) {
     super();
     this.options = {
-      version: options?.version,
-      pythonVersion: options?.pythonVersion ?? "3.14",
+      version: options?.version ?? "3.4.8",
     };
   }
 
   override configure(
     existingConfig: CreateVmOptions
   ): CreateVmOptions | Promise<CreateVmOptions> {
-    const versionArg = this.options.version
-      ? `UV_VERSION="${this.options.version}" `
-      : "";
-
+    // Multi-user install puts RVM in /usr/local/rvm
+    // and auto-creates /etc/profile.d/rvm.sh
+    // Using 'head' instead of 'stable' to get Ruby 3.3+ support
     const installScript = `#!/bin/bash
 set -e
-export UV_INSTALL_DIR="/opt/uv/bin"
-${versionArg}curl -LsSf https://astral.sh/uv/install.sh | sh
-/opt/uv/bin/uv python install ${this.options.pythonVersion}
-/opt/uv/bin/uv --version
+curl -sSL https://get.rvm.io | bash -s -- head
+source /etc/profile.d/rvm.sh
+rvm install ${this.options.version}
+rvm use ${this.options.version} --default
+ruby --version
 `;
 
-    const uvInit = `export PATH="/opt/uv/bin:$PATH"
-`;
-
-    const uvConfig: CreateVmOptions = {
+    const rubyConfig: CreateVmOptions = {
       template: new VmTemplate({
+        aptDeps: ["curl", "gnupg2", "ca-certificates"],
         additionalFiles: {
-          "/opt/install-uv.sh": {
+          "/opt/install-ruby.sh": {
             content: installScript,
-          },
-          "/etc/profile.d/uv.sh": {
-            content: uvInit,
           },
         },
         systemd: {
           services: [
             {
-              name: "install-uv",
+              name: "install-ruby",
               mode: "oneshot",
               deleteAfterSuccess: true,
-              exec: ["bash /opt/install-uv.sh"],
+              exec: ["bash /opt/install-ruby.sh"],
               timeoutSec: 300,
             },
           ],
@@ -70,22 +64,25 @@ ${versionArg}curl -LsSf https://astral.sh/uv/install.sh | sh
       }),
     };
 
-    return this.compose(existingConfig, uvConfig);
+    return this.compose(existingConfig, rubyConfig);
   }
 
-  createInstance(): VmUvInstance {
-    return new VmUvInstance(this);
+  createInstance(): RubyRuntimeInstance {
+    return new RubyRuntimeInstance(this);
   }
 
   installServiceName(): string {
-    return "install-uv.service";
+    return "install-ruby.service";
   }
 }
 
-class VmUvInstance extends VmWithInstance implements VmRunCodeInstance {
-  builder: VmUv;
+class RubyRuntimeInstance
+  extends VmWithInstance
+  implements VmRunCodeInstance
+{
+  builder: VmRuby;
 
-  constructor(builder: VmUv) {
+  constructor(builder: VmRuby) {
     super();
     this.builder = builder;
   }
@@ -94,7 +91,7 @@ class VmUvInstance extends VmWithInstance implements VmRunCodeInstance {
     code: string
   ): Promise<RunCodeResponse<Result>> {
     const result = await this.vm.exec({
-      command: `/opt/uv/bin/uv run python -c "${code.replace(/"/g, '\\"')}"`,
+      command: `/usr/local/rvm/rubies/ruby-${this.builder.options.version}/bin/ruby -e "${code.replace(/"/g, '\\"')}"`,
     });
 
     let parsedResult = undefined;
