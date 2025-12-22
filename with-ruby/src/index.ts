@@ -11,6 +11,29 @@ import type {
   VmRunCode,
 } from "@freestyle-sh/with-type-run-code";
 
+export type InstallResult = {
+  success: boolean;
+  stdout?: string;
+  stderr?: string;
+};
+
+export type InstallOptions =
+  | {
+      global: true;
+      deps: string[];
+    }
+  | {
+      global?: false;
+      deps: string[] | Record<string, string>;
+      directory?: string;
+      dev?: boolean;
+    }
+  | {
+      directory?: string;
+      deps?: undefined;
+      global?: undefined;
+    };
+
 type RubyOptions = { version?: string };
 type RubyResolvedOptions = { version: string };
 
@@ -109,6 +132,36 @@ class RubyRuntimeInstance
       stdout: result.stdout ?? undefined,
       stderr: result.stderr ?? undefined,
       statusCode: result.statusCode ?? -1,
+    };
+  }
+
+  async install(options?: InstallOptions): Promise<InstallResult> {
+    const gemPath = `/usr/local/rvm/rubies/ruby-${this.builder.options.version}/bin/gem`;
+
+    let command: string;
+
+    if (options?.global) {
+      command = `${gemPath} install ${options.deps.join(" ")}`;
+    } else {
+      const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
+
+      if (!options?.deps) {
+        // Install from Gemfile
+        command = `${cdPrefix}bundle install`;
+      } else {
+        const deps = Array.isArray(options.deps)
+          ? options.deps
+          : Object.entries(options.deps).map(([pkg, ver]) => `${pkg}:${ver}`);
+        command = `${cdPrefix}${gemPath} install ${deps.join(" ")}`;
+      }
+    }
+
+    const result = await this.vm.exec({ command });
+
+    return {
+      success: result.statusCode === 0,
+      stdout: result.stdout ?? undefined,
+      stderr: result.stderr ?? undefined,
     };
   }
 }
