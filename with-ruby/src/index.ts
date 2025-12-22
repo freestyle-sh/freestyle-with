@@ -19,8 +19,7 @@ export type InstallResult = {
 
 export type InstallOptions =
   | {
-      deps: string[] | Record<string, string>;
-      directory?: string;
+      deps: string[];
     }
   | {
       directory?: string;
@@ -130,18 +129,15 @@ class RubyRuntimeInstance
 
   async install(options?: InstallOptions): Promise<InstallResult> {
     const gemPath = `/usr/local/rvm/rubies/ruby-${this.builder.options.version}/bin/gem`;
-    const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
 
     let command: string;
 
     if (!options?.deps) {
       // Install from Gemfile
+      const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
       command = `${cdPrefix}bundle install`;
     } else {
-      const deps = Array.isArray(options.deps)
-        ? options.deps
-        : Object.entries(options.deps).map(([pkg, ver]) => `${pkg}:${ver}`);
-      command = `${cdPrefix}${gemPath} install ${deps.join(" ")}`;
+      command = `${gemPath} install ${options.deps.join(" ")}`;
     }
 
     const result = await this.vm.exec({ command });

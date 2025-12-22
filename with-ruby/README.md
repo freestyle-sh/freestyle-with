@@ -67,9 +67,6 @@ Installs gems via `gem install` or `bundle install`.
 // Install specific gems
 await vm.ruby.install({ deps: ["nokogiri", "colorize"] });
 
-// Install gems with versions
-await vm.ruby.install({ deps: { "rails": "7.1.0", "puma": "6.0" } });
-
 // Install from Gemfile (bundle install)
 await vm.ruby.install();
 await vm.ruby.install({ directory: "/app" });
@@ -77,7 +74,7 @@ await vm.ruby.install({ directory: "/app" });
 
 ```typescript
 type InstallOptions =
-  | { deps: string[] | Record<string, string>; directory?: string }
+  | { deps: string[] }
   | { directory?: string; deps?: undefined };
 
 type InstallResult = {
