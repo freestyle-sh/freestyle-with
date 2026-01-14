@@ -1,12 +1,14 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmRuby } from "../src/index.ts";
 
-const { vm } = await freestyle.vms.create({
+const spec = new VmSpec({
   with: {
     ruby: new VmRuby(),
   },
 });
+
+const { vm } = await freestyle.vms.create({ spec });
 
 // Install colorize gem
 await vm.ruby.install({

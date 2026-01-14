@@ -36,20 +36,20 @@ importers:
         specifier: workspace:^
         version: link:../with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   types/with-type-js-deps:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   types/with-type-run-code:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-bun:
     dependencies:
@@ -57,8 +57,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-java:
     dependencies:
@@ -66,8 +66,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-nodejs:
     dependencies:
@@ -75,14 +75,14 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-postgres:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-python:
     dependencies:
@@ -90,8 +90,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-ruby:
     dependencies:
@@ -99,8 +99,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
   with-uv:
     dependencies:
@@ -108,8 +108,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.8
+        version: 0.1.8
 
 packages:
 
@@ -768,8 +768,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  freestyle-sandboxes@0.1.2:
-    resolution: {integrity: sha512-JSdAOXYeDJJIktgYMdom5crVF750Z6y7KRUEMlfvAy5NzKk6GMzUG7hDKB5ni3nf0bEQwGisOBRZI+RIqVcPGA==}
+  freestyle-sandboxes@0.1.8:
+    resolution: {integrity: sha512-Sr2MoKzPUx8mwq6/fIlHseGMS5bYMWtKPH/O+Uo1jLi1IhG6DzLna0F2m3ZcZOI5QlT3YokLwdNliiOpN/IsYA==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1638,7 +1638,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  freestyle-sandboxes@0.1.2: {}
+  freestyle-sandboxes@0.1.8: {}
 
   fsevents@2.3.3:
     optional: true

@@ -1,15 +1,19 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmNodeJs } from "../src/index.ts";
 
-const { vm } = await freestyle.vms.create({
+const spec = new VmSpec({
   with: {
-    js: new VmNodeJs({}),
+    node: new VmNodeJs({}),
   },
 });
 
-const res = await vm.js.runCode({
-  code: "console.log(JSON.stringify({ hello: 'world' }));"
+const { vm, vmId } = await freestyle.vms.create({ spec });
+
+console.log(vmId);
+
+const res = await vm.node.runCode({
+  code: "console.log(JSON.stringify({ hello: 'world' }));",
 });
 
 console.log(res);

@@ -1,8 +1,8 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmPostgres } from "../src/index.ts";
 
-const { vm } = await freestyle.vms.create({
+const spec = new VmSpec({
   with: {
     postgres: new VmPostgres({
       password: "mypassword",
@@ -10,6 +10,8 @@ const { vm } = await freestyle.vms.create({
     }),
   },
 });
+
+const { vm, vmId } = await freestyle.vms.create({ spec });
 
 console.log("PostgreSQL VM created successfully!");
 
@@ -41,6 +43,4 @@ const queryResult = await vm.postgres.query<{
 `);
 console.log("Query results:", queryResult);
 
-// Clean up
-await vm.destroy();
-console.log("VM destroyed");
+await freestyle.vms.delete({ vmId });

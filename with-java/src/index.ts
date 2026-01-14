@@ -1,5 +1,5 @@
 import {
-  VmTemplate,
+  VmSpec,
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
@@ -54,9 +54,7 @@ export class VmJava
     super();
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const installScript = `#!/bin/bash
 set -e
 sudo apt-get update
@@ -69,8 +67,9 @@ sudo apt-get update
 sudo apt-get install -y java-${this.options.version}-amazon-corretto-jdk libxi6 libxtst6 libxrender1
 `;
 
-    const javaConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-java.sh": {
             content: installScript,
@@ -87,10 +86,8 @@ sudo apt-get install -y java-${this.options.version}-amazon-corretto-jdk libxi6 
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, javaConfig);
+      })
+    );
   }
 
   createInstance(): VmJavaInstance {
