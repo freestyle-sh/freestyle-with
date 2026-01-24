@@ -1,0 +1,29 @@
+{
+  "name": "@freestyle-sh/with-web-terminal",
+  "version": "0.0.1",
+  "description": "Web terminal for freestyle sandboxes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "source": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "pkgroll",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": ["ttyd", "terminal", "web-terminal", "freestyle"],
+  "author": "",
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "pkgroll": "^2.11.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "freestyle-sandboxes": "^0.1.12"
+  }
+}
