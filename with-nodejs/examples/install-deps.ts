@@ -1,12 +1,14 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmNodeJs } from "../src/index.ts";
 
-const { vm } = await freestyle.vms.create({
+const spec = new VmSpec({
   with: {
     node: new VmNodeJs(),
   },
 });
+
+const { vm } = await freestyle.vms.create({ spec });
 
 // Install mathjs
 await vm.node.install({

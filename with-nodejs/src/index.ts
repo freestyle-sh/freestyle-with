@@ -1,5 +1,5 @@
 import { VmWith, VmWithInstance } from "freestyle-sandboxes";
-import { VmTemplate, type CreateVmOptions } from "freestyle-sandboxes";
+import { VmSpec, type CreateVmOptions } from "freestyle-sandboxes";
 import type {
   JSONValue,
   RunCodeResponse,
@@ -26,9 +26,7 @@ export class VmNodeJs
     };
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const installScript = `#!/bin/bash
 set -e
 export NVM_DIR="/opt/nvm"
@@ -47,8 +45,9 @@ npm -v
 [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 `;
 
-    const nodeJsConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-nodejs.sh": {
             content: installScript,
@@ -68,10 +67,8 @@ npm -v
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, nodeJsConfig);
+      })
+    );
   }
 
   createInstance(): NodeJsRuntimeInstance {

@@ -1,5 +1,5 @@
 import {
-  VmTemplate,
+  VmSpec,
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
@@ -30,9 +30,7 @@ export class VmBun
     };
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const versionArg = this.options.version
       ? ` -s "bun-v${this.options.version}"`
       : "";
@@ -48,8 +46,9 @@ $BUN_INSTALL/bin/bun --version
 export PATH="$BUN_INSTALL/bin:$PATH"
 `;
 
-    const bunConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-bun.sh": {
             content: installScript,
@@ -69,10 +68,8 @@ export PATH="$BUN_INSTALL/bin:$PATH"
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, bunConfig);
+      })
+    );
   }
 
   createInstance(): VmBunInstance {

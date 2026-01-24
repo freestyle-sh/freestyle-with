@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.2",
+    "freestyle-sandboxes": "^0.1.8",
     "@freestyle-sh/with-type-run-code": "workspace:^"
   },
   "type": "module",

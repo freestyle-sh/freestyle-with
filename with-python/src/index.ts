@@ -1,5 +1,5 @@
 import { VmWith, VmWithInstance } from "freestyle-sandboxes";
-import { VmTemplate, type CreateVmOptions } from "freestyle-sandboxes";
+import { VmSpec, type CreateVmOptions } from "freestyle-sandboxes";
 import type {
   JSONValue,
   RunCodeResponse,
@@ -18,16 +18,13 @@ export class VmPython
     super();
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
-    const pythonConfig: CreateVmOptions = {
-      template: new VmTemplate({
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         aptDeps: ["python3"],
-      }),
-    };
-
-    return this.compose(existingConfig, pythonConfig);
+      })
+    );
   }
 
   createInstance(): PythonRuntimeInstance {

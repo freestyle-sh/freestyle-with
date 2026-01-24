@@ -1,5 +1,5 @@
 import {
-  VmTemplate,
+  VmSpec,
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
@@ -146,9 +146,7 @@ export class VmPostgres extends VmWith<VmPostgresInstance> {
     };
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const installScript = `#!/bin/bash
 set -e
 
@@ -181,8 +179,9 @@ sudo systemctl restart postgresql
 sudo systemctl enable postgresql
 `;
 
-    const postgresConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-postgres.sh": {
             content: installScript,
@@ -199,10 +198,8 @@ sudo systemctl enable postgresql
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, postgresConfig);
+      })
+    );
   }
 
   createInstance(): VmPostgresInstance {

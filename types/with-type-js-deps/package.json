@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.2"
+    "freestyle-sandboxes": "^0.1.8"
   },
   "type": "module",
   "main": "./dist/index.js",

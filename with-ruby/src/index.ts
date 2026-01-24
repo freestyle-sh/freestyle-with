@@ -1,5 +1,5 @@
 import {
-  VmTemplate,
+  VmSpec,
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
@@ -42,9 +42,7 @@ export class VmRuby
     };
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     // Multi-user install puts RVM in /usr/local/rvm
     // and auto-creates /etc/profile.d/rvm.sh
     // Using 'head' instead of 'stable' to get Ruby 3.3+ support
@@ -57,8 +55,9 @@ rvm use ${this.options.version} --default
 ruby --version
 `;
 
-    const rubyConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         aptDeps: ["curl", "gnupg2", "ca-certificates"],
         additionalFiles: {
           "/opt/install-ruby.sh": {
@@ -76,10 +75,8 @@ ruby --version
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, rubyConfig);
+      })
+    );
   }
 
   createInstance(): RubyRuntimeInstance {
@@ -91,10 +88,7 @@ ruby --version
   }
 }
 
-class RubyRuntimeInstance
-  extends VmWithInstance
-  implements VmRunCodeInstance
-{
+class RubyRuntimeInstance extends VmWithInstance implements VmRunCodeInstance {
   builder: VmRuby;
 
   constructor(builder: VmRuby) {
@@ -108,7 +102,9 @@ class RubyRuntimeInstance
     code: string;
   }): Promise<RunCodeResponse<Result>> {
     const result = await this.vm.exec({
-      command: `/usr/local/rvm/rubies/ruby-${this.builder.options.version}/bin/ruby -e "${code.replace(/"/g, '\\"')}"`,
+      command: `/usr/local/rvm/rubies/ruby-${
+        this.builder.options.version
+      }/bin/ruby -e "${code.replace(/"/g, '\\"')}"`,
     });
 
     let parsedResult = undefined;

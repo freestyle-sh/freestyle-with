@@ -1,5 +1,5 @@
 import {
-  VmTemplate,
+  VmSpec,
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
@@ -28,9 +28,7 @@ export class VmUv
     };
   }
 
-  override configure(
-    existingConfig: CreateVmOptions
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const versionArg = this.options.version
       ? `UV_VERSION="${this.options.version}" `
       : "";
@@ -46,8 +44,9 @@ ${versionArg}curl -LsSf https://astral.sh/uv/install.sh | sh
     const uvInit = `export PATH="/opt/uv/bin:$PATH"
 `;
 
-    const uvConfig: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-uv.sh": {
             content: installScript,
@@ -67,10 +66,8 @@ ${versionArg}curl -LsSf https://astral.sh/uv/install.sh | sh
             },
           ],
         },
-      }),
-    };
-
-    return this.compose(existingConfig, uvConfig);
+      })
+    );
   }
 
   createInstance(): VmUvInstance {

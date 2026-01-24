@@ -1,15 +1,17 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmPython } from "../src/index.ts";
 
-const { vm } = await freestyle.vms.create({
+const spec = new VmSpec({
   with: {
     python: new VmPython(),
   },
 });
 
+const { vm } = await freestyle.vms.create({ spec });
+
 const res = await vm.python.runCode({
-  code: "import json; print(json.dumps({'hello': 'world'}))"
+  code: "import json; print(json.dumps({'hello': 'world'}))",
 });
 
 console.log(res);

@@ -36,19 +36,19 @@ importers:
         specifier: workspace:^
         version: link:../with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   types/with-type-js-deps:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   types/with-type-run-code:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-bun:
@@ -57,7 +57,7 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-java:
@@ -66,7 +66,7 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-nodejs:
@@ -75,13 +75,13 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-postgres:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-python:
@@ -90,7 +90,7 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-ruby:
@@ -99,7 +99,7 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
   with-uv:
@@ -108,7 +108,7 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.2
+        specifier: ^0.1.8
         version: 0.1.9
 
 packages:
