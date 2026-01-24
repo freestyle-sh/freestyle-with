@@ -11,7 +11,7 @@ import {
 // ============================================================================
 
 export type TtydConfig = {
-  /** Port to run ttyd on (default: auto-assigned starting at 7681) */
+  /** Port to run ttyd on (default: auto-assigned starting at 7682) */
   port?: number;
   /** Shell or command to run (default: /bin/bash) */
   shell?: string;
@@ -29,6 +29,17 @@ export type TtydConfig = {
 
 export type WebTerminalConfig = { id: string } & TtydConfig;
 
+export type ResolvedTerminalConfig = {
+  id: string;
+  port: number;
+  shell: string;
+  user: string;
+  cwd: string;
+  credential?: { username: string; password: string };
+  title: string;
+  readOnly: boolean;
+};
+
 // ============================================================================
 // Builder Class
 // ============================================================================
@@ -36,28 +47,27 @@ export type WebTerminalConfig = { id: string } & TtydConfig;
 export class VmWebTerminal<
   T extends WebTerminalConfig[] = WebTerminalConfig[]
 > extends VmWith<VmWebTerminalInstance<T> & TerminalInstances<T>> {
-  private terminals: T;
+  private resolvedTerminals: ResolvedTerminalConfig[];
 
   constructor(terminals: T) {
     super();
-    this.terminals = terminals;
+    // Resolve config once with defaults
+    let nextPort = 7682;
+    this.resolvedTerminals = terminals.map((config) => ({
+      id: config.id,
+      port: config.port ?? nextPort++,
+      shell: config.shell ?? "bash -l",
+      user: config.user ?? "root",
+      cwd: config.cwd ?? "/root",
+      credential: config.credential,
+      title: config.title ?? config.id,
+      readOnly: config.readOnly ?? false,
+    }));
   }
 
   override configure(
     existingConfig: CreateVmOptions
   ): CreateVmOptions | Promise<CreateVmOptions> {
-    // Auto-assign ports starting at 7682
-    let nextPort = 7682;
-    const resolvedTerminals = this.terminals.map((config) => ({
-      id: config.id,
-      port: config.port ?? nextPort++,
-      shell: config.shell ?? "bash -l",
-      user: config.user,
-      cwd: config.cwd,
-      credential: config.credential,
-      title: config.title ?? config.id,
-      readOnly: config.readOnly ?? false,
-    }));
 
     // Generate install script
     const installScript = `#!/bin/bash
@@ -70,7 +80,7 @@ chmod +x /usr/local/bin/ttyd
 `;
 
     // Generate systemd service for each terminal
-    const services = resolvedTerminals.map((t) => {
+    const services = this.resolvedTerminals.map((t) => {
       const args: string[] = [
         `/usr/local/bin/ttyd`,
         `-p ${t.port}`,
@@ -85,15 +95,15 @@ chmod +x /usr/local/bin/ttyd
         args.push(`--writable`);
       }
 
-      // Shell command at the end (default: bash -l for login shell)
+      // Shell command at the end
       args.push(t.shell);
 
       return {
         name: `web-terminal-${t.id}`,
         mode: "service" as const,
         exec: [args.join(" ")],
-        user: t.user ?? "root",
-        cwd: t.cwd ?? "/root",
+        user: t.user,
+        cwd: t.cwd,
         restart: "always" as const,
         restartSec: 2,
         after: ["install-ttyd.service"],
@@ -124,7 +134,7 @@ chmod +x /usr/local/bin/ttyd
   }
 
   createInstance(): VmWebTerminalInstance<T> & TerminalInstances<T> {
-    return new VmWebTerminalInstance(this, this.terminals) as VmWebTerminalInstance<T> & TerminalInstances<T>;
+    return new VmWebTerminalInstance(this, this.resolvedTerminals) as VmWebTerminalInstance<T> & TerminalInstances<T>;
   }
 
   installServiceName(): string {
@@ -172,17 +182,16 @@ export class VmWebTerminalInstance<
 > extends VmWithInstance {
   builder: VmWebTerminal<T>;
 
-  constructor(builder: VmWebTerminal<T>, terminals: T) {
+  constructor(builder: VmWebTerminal<T>, resolvedTerminals: ResolvedTerminalConfig[]) {
     super();
     this.builder = builder;
 
-    // Create terminals as properties
-    let nextPort = 7681;
-    for (const config of terminals) {
+    // Create terminals as properties using resolved config
+    for (const config of resolvedTerminals) {
       const terminal = new WebTerminal({
         id: config.id,
-        port: config.port ?? nextPort++,
-        shell: config.shell ?? "bash -l",
+        port: config.port,
+        shell: config.shell,
         instance: this,
       });
       (this as any)[config.id] = terminal;

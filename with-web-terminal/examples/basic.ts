@@ -5,7 +5,7 @@ import { VmWebTerminal } from "../src/index.ts";
 const terminalId = crypto.randomUUID();
 
 const webTerminal = new VmWebTerminal([
-  { id: "main", port: 9000 },
+  { id: "main", },
 ] as const);
 
 const { vm } = await freestyle.vms.create({
