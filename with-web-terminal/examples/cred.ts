@@ -2,7 +2,10 @@ import "dotenv/config";
 import { freestyle } from "freestyle-sandboxes";
 import { VmWebTerminal } from "../src/index.ts";
 
-const webTerminal = new VmWebTerminal([{ id: "main" }] as const);
+const webTerminal = new VmWebTerminal([{ id: "main", credential: {
+  username: "admin",
+  password: "password123",
+}}] as const);
 
 const { vm } = await freestyle.vms.create({
   with: {

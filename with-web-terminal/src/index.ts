@@ -87,6 +87,16 @@ chmod +x /usr/local/bin/ttyd
       ];
 
       if (t.credential) {
+        if (t.credential.username.length === 0 || t.credential.password.length === 0) {
+          throw new Error(
+            `Invalid credential for terminal ${t.id}: username and password cannot be empty`
+          );
+        }
+        if (t.credential.username.includes(":") || t.credential.password.includes(":")) {
+          throw new Error(
+            `Invalid credential for terminal ${t.id}: username and password cannot contain colon (:) character`
+          );
+        }
         args.push(`--credential ${t.credential.username}:${t.credential.password}`);
       }
       if (t.readOnly) {
