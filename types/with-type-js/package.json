@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-type-js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "packageManager": "pnpm@10.11.0",
   "dependencies": {

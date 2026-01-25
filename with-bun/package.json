@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-bun",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
