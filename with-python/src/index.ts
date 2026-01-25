@@ -23,7 +23,7 @@ export class VmPython
       spec,
       new VmSpec({
         aptDeps: ["python3"],
-      })
+      }),
     );
   }
 
@@ -42,11 +42,10 @@ class PythonRuntimeInstance
     this.builder = builder;
   }
 
-  async runCode<Result extends JSONValue = any>({
-    code,
-  }: {
-    code: string;
-  }): Promise<RunCodeResponse<Result>> {
+  async runCode<Result extends JSONValue = any>(
+    args: string | { code: string },
+  ): Promise<RunCodeResponse<Result>> {
+    const code = typeof args === "string" ? args : args.code;
     const result = await this.vm.exec({
       command: `python3 -c "${code.replace(/"/g, '\\"')}"`,
     });

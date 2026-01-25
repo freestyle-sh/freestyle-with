@@ -68,7 +68,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
             },
           ],
         },
-      })
+      }),
     );
   }
 
@@ -92,11 +92,10 @@ class VmBunInstance
     this.builder = builder;
   }
 
-  async runCode<Result extends JSONValue = any>({
-    code,
-  }: {
-    code: string;
-  }): Promise<RunCodeResponse<Result>> {
+  async runCode<Result extends JSONValue = any>(
+    args: string | { code: string },
+  ): Promise<RunCodeResponse<Result>> {
+    const code = typeof args === "string" ? args : args.code;
     const result = await this.vm.exec({
       command: `/opt/bun/bin/bun -e "${code.replace(/"/g, '\\"')}"`,
     });

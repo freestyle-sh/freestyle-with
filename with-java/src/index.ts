@@ -15,11 +15,10 @@ export class VmJavaInstance
   extends VmWithInstance
   implements VmRunCodeInstance
 {
-  async runCode<Result extends JSONValue = any>({
-    code,
-  }: {
-    code: string;
-  }): Promise<RunCodeResponse<Result>> {
+  async runCode<Result extends JSONValue = any>(
+    args: string | { code: string },
+  ): Promise<RunCodeResponse<Result>> {
+    const code = typeof args === "string" ? args : args.code;
     const result = await this.vm.exec({
       command: `java -cp /tmp -c "${code.replace(/"/g, '\\"')}"`,
     });
@@ -86,7 +85,7 @@ sudo apt-get install -y java-${this.options.version}-amazon-corretto-jdk libxi6 
             },
           ],
         },
-      })
+      }),
     );
   }
 
