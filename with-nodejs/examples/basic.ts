@@ -13,7 +13,10 @@ const { vm, vmId } = await freestyle.vms.create({ spec });
 console.log(vmId);
 
 const res = await vm.node.runCode({
-  code: "console.log(JSON.stringify({ hello: 'world' }));",
+  code: `
+  console.log(JSON.stringify({ hello: 'test' }));
+  console.log(JSON.stringify({ hello: 'world' }));
+  `,
 });
 
 console.log(res);

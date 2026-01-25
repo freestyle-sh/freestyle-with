@@ -97,21 +97,44 @@ class RubyRuntimeInstance extends VmWithInstance implements VmRunCodeInstance {
   }
 
   async runCode<Result extends JSONValue = any>(
-    args: string | { code: string },
+    args:
+      | string
+      | { code: string; argv?: string[]; env?: Record<string, string>; workdir?: string },
   ): Promise<RunCodeResponse<Result>> {
-    const code = typeof args === "string" ? args : args.code;
+    const options = typeof args === "string" ? { code: args } : args;
+    const { code, argv, env, workdir } = options;
+    const shellEscape = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
+    const argvArgs = argv?.map(shellEscape).join(" ");
+    const envPrefix = env
+      ? `${Object.entries(env)
+          .map(([key, value]) => `${key}=${shellEscape(value)}`)
+          .join(" ")} `
+      : "";
+    const cdPrefix = workdir ? `cd ${shellEscape(workdir)} && ` : "";
+    const command = `${cdPrefix}${envPrefix}/usr/local/rvm/rubies/ruby-${
+      this.builder.options.version
+    }/bin/ruby -e "${code.replace(/"/g, '\\"')}"${
+      argvArgs ? ` -- ${argvArgs}` : ""
+    }`;
+
     const result = await this.vm.exec({
-      command: `/usr/local/rvm/rubies/ruby-${
-        this.builder.options.version
-      }/bin/ruby -e "${code.replace(/"/g, '\\"')}"`,
+      command,
     });
 
     let parsedResult = undefined;
 
     if (result.stdout) {
-      try {
-        parsedResult = JSON.parse(result.stdout);
-      } catch (e) {}
+      const lines = result.stdout
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      const lastLine = lines[lines.length - 1];
+
+      if (lastLine) {
+        try {
+          parsedResult = JSON.parse(lastLine);
+        } catch (e) {}
+      }
     }
 
     return {

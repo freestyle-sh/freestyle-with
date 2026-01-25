@@ -9,6 +9,15 @@ export type RunCodeResponse<Result extends JSONValue> = {
   statusCode?: number;
 };
 
+export type RunCodeOptions = {
+  code: string;
+  argv?: string[];
+  env?: Record<string, string>;
+  workdir?: string;
+};
+
+export type RunCodeInput = string | RunCodeOptions;
+
 export type JSONValue =
   | undefined
   | string
@@ -19,9 +28,7 @@ export type JSONValue =
   | Array<JSONValue>; // Array of JSON values
 
 export interface VmRunCodeInstance extends VmWithInstance {
-  runCode<Result extends JSONValue>({
-    code,
-  }: {
-    code: string;
-  }): Promise<RunCodeResponse<Result>>;
+  runCode<Result extends JSONValue>(
+    options: RunCodeInput,
+  ): Promise<RunCodeResponse<Result>>;
 }

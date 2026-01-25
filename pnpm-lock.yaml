@@ -27,6 +27,18 @@ importers:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2)(typescript@5.9.3)
 
+  prod-test:
+    dependencies:
+      '@freestyle-sh/with-nodejs':
+        specifier: ^0.2.1
+        version: 0.2.1
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+      freestyle-sandboxes:
+        specifier: ^0.1.13
+        version: 0.1.13
+
   types/with-type-js:
     dependencies:
       '@freestyle-sh/with-type-js-deps':
@@ -306,6 +318,18 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@freestyle-sh/with-nodejs@0.2.1':
+    resolution: {integrity: sha512-rx3J6D37c1M3WaFW60iC8N5e2PGX108hWo4FM7ATo0nX62v4uCOiJuvCmMqBWKWzMdiW8my6LbmVV1Vw6Iodfw==}
+
+  '@freestyle-sh/with-type-js-deps@0.2.1':
+    resolution: {integrity: sha512-9+Xt9PPdj6TBqlrHLM/rta0g+2nR4XwBqS97NGSLCAojsffqGIsacTIy6cAamFPya7S6ah8sV8/P1jqko0IPiQ==}
+
+  '@freestyle-sh/with-type-js@0.2.1':
+    resolution: {integrity: sha512-CN5V/G5SrnCS8J3LfL+I8B7QuAzkzsCPiTVNwhUlIJMszFwnXGwOWeZ/POe2lWJGFtXNm5eal0JOHUNWO+bkUQ==}
+
+  '@freestyle-sh/with-type-run-code@0.2.1':
+    resolution: {integrity: sha512-q6eJ38XR6t+5rnaPEYVJTuo9GcEF34c/oWXDsRParU3cn8hMr7+nKIAyaeK3fs0dWsQ00/exGdaxrbAexX4z6w==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -783,6 +807,9 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
+  freestyle-sandboxes@0.1.13:
+    resolution: {integrity: sha512-Yg18IsxrWThkHC7QcmKO6sIlz6/v/z7wyiCnwqm0HQyAwSzZAiLE1mh6iXcxtGj8wmiDBJAHszuOpVXsxHzO3A==}
+
   freestyle-sandboxes@0.1.9:
     resolution: {integrity: sha512-1jmKGX97RXSapoj/Rgf90p4piybSTPOWm8Sha3vjxEA2gt0MwfoPkQJhJgluPZ7Rg1StbjiekqvAHb4NUx0BNA==}
 
@@ -1187,6 +1214,25 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@freestyle-sh/with-nodejs@0.2.1':
+    dependencies:
+      '@freestyle-sh/with-type-js': 0.2.1
+      freestyle-sandboxes: 0.1.13
+
+  '@freestyle-sh/with-type-js-deps@0.2.1':
+    dependencies:
+      freestyle-sandboxes: 0.1.13
+
+  '@freestyle-sh/with-type-js@0.2.1':
+    dependencies:
+      '@freestyle-sh/with-type-js-deps': 0.2.1
+      '@freestyle-sh/with-type-run-code': 0.2.1
+      freestyle-sandboxes: 0.1.13
+
+  '@freestyle-sh/with-type-run-code@0.2.1':
+    dependencies:
+      freestyle-sandboxes: 0.1.13
 
   '@humanfs/core@0.19.1': {}
 
@@ -1661,6 +1707,8 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.3: {}
+
+  freestyle-sandboxes@0.1.13: {}
 
   freestyle-sandboxes@0.1.9: {}
 
