@@ -14,7 +14,7 @@ export type TtydConfig = {
   /** Port to run ttyd on (default: auto-assigned starting at 7682) */
   port?: number;
   /** Shell or command to run (default: /bin/bash) */
-  shell?: string;
+  command?: string;
   /** User to run terminal as (default: current user) */
   user?: string;
   /** Working directory (default: user home) */
@@ -32,7 +32,7 @@ export type WebTerminalConfig = { id: string } & TtydConfig;
 export type ResolvedTerminalConfig = {
   id: string;
   port: number;
-  shell: string;
+  command: string;
   user: string;
   cwd: string;
   credential?: { username: string; password: string };
@@ -56,7 +56,7 @@ export class VmWebTerminal<
     this.resolvedTerminals = terminals.map((config) => ({
       id: config.id,
       port: config.port ?? nextPort++,
-      shell: config.shell ?? "bash -l",
+      command: config.command ?? "bash -l",
       user: config.user ?? "root",
       cwd: config.cwd ?? "/root",
       credential: config.credential,
@@ -106,7 +106,7 @@ chmod +x /usr/local/bin/ttyd
       }
 
       // Shell command at the end
-      args.push(t.shell);
+      args.push(t.command);
 
       return {
         name: `web-terminal-${t.id}`,
@@ -116,7 +116,8 @@ chmod +x /usr/local/bin/ttyd
         cwd: t.cwd,
         restart: "always" as const,
         restartSec: 2,
-        after: ["install-ttyd.service"],
+        after: ["install-ttyd.service", "systemd-sysusers.service"],
+        requires: ["systemd-sysusers.service"],
       };
     });
 
@@ -159,13 +160,13 @@ chmod +x /usr/local/bin/ttyd
 export class WebTerminal {
   readonly id: string;
   readonly port: number;
-  readonly shell: string;
+  readonly command: string;
   private instance: VmWebTerminalInstance<any>;
 
-  constructor({ id, port, shell, instance }: { id: string; port: number; shell: string; instance: VmWebTerminalInstance<any> }) {
+  constructor({ id, port, command, instance }: { id: string; port: number; command: string; instance: VmWebTerminalInstance<any> }) {
     this.id = id;
     this.port = port;
-    this.shell = shell;
+    this.command = command;
     this.instance = instance;
   }
 
@@ -201,7 +202,7 @@ export class VmWebTerminalInstance<
       const terminal = new WebTerminal({
         id: config.id,
         port: config.port,
-        shell: config.shell,
+        command: config.command,
         instance: this,
       });
       (this as any)[config.id] = terminal;
