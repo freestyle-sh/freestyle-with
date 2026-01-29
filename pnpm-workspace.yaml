@@ -6,5 +6,5 @@ packages:
   - "with-postgres"
   - "with-uv"
   - "with-ruby"
-  - "with-ttyd"
+  - "with-web-terminal"
   - "types/*"

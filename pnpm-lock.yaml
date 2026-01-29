@@ -27,18 +27,6 @@ importers:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2)(typescript@5.9.3)
 
-  prod-test:
-    dependencies:
-      '@freestyle-sh/with-nodejs':
-        specifier: ^0.2.1
-        version: 0.2.1
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
-      freestyle-sandboxes:
-        specifier: ^0.1.13
-        version: 0.1.13
-
   types/with-type-js:
     dependencies:
       '@freestyle-sh/with-type-js-deps':
@@ -48,20 +36,20 @@ importers:
         specifier: workspace:^
         version: link:../with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   types/with-type-js-deps:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   types/with-type-run-code:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-bun:
     dependencies:
@@ -69,8 +57,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-java:
     dependencies:
@@ -78,8 +66,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-nodejs:
     dependencies:
@@ -87,14 +75,33 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
+
+  with-opencode:
+    dependencies:
+      '@opencode-ai/sdk':
+        specifier: ^1.1.42
+        version: 1.1.42
+      freestyle-sandboxes:
+        specifier: ^0.1.13
+        version: 0.1.13
+    devDependencies:
+      '@freestyle-sh/with-web-terminal':
+        specifier: workspace:*
+        version: link:../with-web-terminal
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   with-postgres:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-python:
     dependencies:
@@ -102,8 +109,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-ruby:
     dependencies:
@@ -111,8 +118,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
 
   with-uv:
     dependencies:
@@ -120,8 +127,21 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.8
-        version: 0.1.9
+        specifier: ^0.1.13
+        version: 0.1.13
+
+  with-web-terminal:
+    dependencies:
+      freestyle-sandboxes:
+        specifier: ^0.1.12
+        version: 0.1.13
+    devDependencies:
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
 packages:
 
@@ -319,18 +339,6 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@freestyle-sh/with-nodejs@0.2.1':
-    resolution: {integrity: sha512-rx3J6D37c1M3WaFW60iC8N5e2PGX108hWo4FM7ATo0nX62v4uCOiJuvCmMqBWKWzMdiW8my6LbmVV1Vw6Iodfw==}
-
-  '@freestyle-sh/with-type-js-deps@0.2.1':
-    resolution: {integrity: sha512-9+Xt9PPdj6TBqlrHLM/rta0g+2nR4XwBqS97NGSLCAojsffqGIsacTIy6cAamFPya7S6ah8sV8/P1jqko0IPiQ==}
-
-  '@freestyle-sh/with-type-js@0.2.1':
-    resolution: {integrity: sha512-CN5V/G5SrnCS8J3LfL+I8B7QuAzkzsCPiTVNwhUlIJMszFwnXGwOWeZ/POe2lWJGFtXNm5eal0JOHUNWO+bkUQ==}
-
-  '@freestyle-sh/with-type-run-code@0.2.1':
-    resolution: {integrity: sha512-q6eJ38XR6t+5rnaPEYVJTuo9GcEF34c/oWXDsRParU3cn8hMr7+nKIAyaeK3fs0dWsQ00/exGdaxrbAexX4z6w==}
-
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -361,6 +369,9 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@opencode-ai/sdk@1.1.42':
+    resolution: {integrity: sha512-QuTJgnzmsQ+CF/mr9nu+FQGv2cMwGMsnWd7eOF0YLuXKOzpx+xlBkUGdZz8l0n3I+7ix8iiMZbTw4laAG8vIqA==}
 
   '@rollup/plugin-alias@6.0.0':
     resolution: {integrity: sha512-tPCzJOtS7uuVZd+xPhoy5W4vThe6KWXNmsFCNktaAh5RTqcLiSfT4huPQIXkgJ6YCOjJHvecOAzQxLFhPxKr+g==}
@@ -810,9 +821,6 @@ packages:
   freestyle-sandboxes@0.1.13:
     resolution: {integrity: sha512-Yg18IsxrWThkHC7QcmKO6sIlz6/v/z7wyiCnwqm0HQyAwSzZAiLE1mh6iXcxtGj8wmiDBJAHszuOpVXsxHzO3A==}
 
-  freestyle-sandboxes@0.1.9:
-    resolution: {integrity: sha512-1jmKGX97RXSapoj/Rgf90p4piybSTPOWm8Sha3vjxEA2gt0MwfoPkQJhJgluPZ7Rg1StbjiekqvAHb4NUx0BNA==}
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1215,25 +1223,6 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@freestyle-sh/with-nodejs@0.2.1':
-    dependencies:
-      '@freestyle-sh/with-type-js': 0.2.1
-      freestyle-sandboxes: 0.1.13
-
-  '@freestyle-sh/with-type-js-deps@0.2.1':
-    dependencies:
-      freestyle-sandboxes: 0.1.13
-
-  '@freestyle-sh/with-type-js@0.2.1':
-    dependencies:
-      '@freestyle-sh/with-type-js-deps': 0.2.1
-      '@freestyle-sh/with-type-run-code': 0.2.1
-      freestyle-sandboxes: 0.1.13
-
-  '@freestyle-sh/with-type-run-code@0.2.1':
-    dependencies:
-      freestyle-sandboxes: 0.1.13
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -1258,6 +1247,8 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
+
+  '@opencode-ai/sdk@1.1.42': {}
 
   '@rollup/plugin-alias@6.0.0(rollup@4.55.3)':
     optionalDependencies:
@@ -1709,8 +1700,6 @@ snapshots:
   flatted@3.3.3: {}
 
   freestyle-sandboxes@0.1.13: {}
-
-  freestyle-sandboxes@0.1.9: {}
 
   fsevents@2.3.3:
     optional: true

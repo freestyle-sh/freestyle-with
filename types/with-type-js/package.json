@@ -4,7 +4,7 @@
   "private": false,
   "packageManager": "pnpm@10.11.0",
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.8",
+    "freestyle-sandboxes": "^0.1.13",
     "@freestyle-sh/with-type-run-code": "workspace:^",
     "@freestyle-sh/with-type-js-deps": "workspace:^"
   },

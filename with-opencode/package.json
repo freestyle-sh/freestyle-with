@@ -1,11 +1,16 @@
 {
-  "name": "@freestyle-sh/with-bun",
-  "version": "0.2.2",
+  "name": "@freestyl-sh/with-opencode",
+  "version": "0.0.1",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.13",
-    "@freestyle-sh/with-type-js": "workspace:^"
+    "@opencode-ai/sdk": "^1.1.42",
+    "freestyle-sandboxes": "^0.1.13"
+  },
+  "devDependencies": {
+    "@freestyle-sh/with-web-terminal": "workspace:*",
+    "pkgroll": "^2.11.2",
+    "typescript": "^5.8.3"
   },
   "type": "module",
   "main": "./dist/index.js",
