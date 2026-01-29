@@ -42,15 +42,15 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
           "/opt/run-opencode-web.sh": {
             content: `
               #!/bin/bash
-              
+
               export PATH="$HOME/.local/bin:$PATH"
-              /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.webPort}  
+              /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.webPort}
               `,
           },
           "/opt/run-opencode-server.sh": {
             content: `
               #!/bin/bash
-              
+
               export PATH="$HOME/.local/bin:$PATH"
               /root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.serverPort}
               `,

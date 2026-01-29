@@ -7,4 +7,5 @@ packages:
   - "with-uv"
   - "with-ruby"
   - "with-web-terminal"
+  - "with-opencode"
   - "types/*"
