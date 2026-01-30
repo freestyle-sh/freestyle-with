@@ -8,17 +8,19 @@ import {
 import { createOpencodeClient } from "@opencode-ai/sdk";
 
 export type OpenCodeAuthOptions = {
-    password?: string;
-    username?: string;
-  };
-
-export type ResolvedOpenCodeAuthOptions = {
-    password: string;
-    username: string;
-} | {
-    password?: undefined;
-    username?: undefined;
+  password?: string;
+  username?: string;
 };
+
+export type ResolvedOpenCodeAuthOptions =
+  | {
+      password: string;
+      username: string;
+    }
+  | {
+      password?: undefined;
+      username?: undefined;
+    };
 
 export type OpenCodeOptions = {
   server?: {
@@ -50,22 +52,21 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
   constructor(options?: OpenCodeOptions) {
     super();
     this.options = {
-      server: { port: options?.server?.port ?? 4096, ...resolveAuth(options?.server) },
+      server: {
+        port: options?.server?.port ?? 4096,
+        ...resolveAuth(options?.server),
+      },
       web: { port: options?.web?.port ?? 4097, ...resolveAuth(options?.web) },
     };
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec {
     const webAuthEnv = this.options.web.username
-      ? `
-      OPENCODE_WEB_USERNAME=${this.options.web.username} OPENCODE_WEB_PASSWORD=${this.options.web.password} 
-      `.trim()
+      ? `OPENCODE_SERVER_USERNAME=${this.options.web.username} OPENCODE_SERVER_PASSWORD=${this.options.web.password}`.trim()
       : "";
-      
-    const serverAuthEnv = this.options.server.username ?
-      `
-      OPENCODE_SERVER_USERNAME=${this.options.server.username} OPENCODE_SERVER_PASSWORD=${this.options.server.password} 
-      `.trim()
+
+    const serverAuthEnv = this.options.server.username
+      ? `OPENCODE_SERVER_USERNAME=${this.options.server.username} OPENCODE_SERVER_PASSWORD=${this.options.server.password}`.trim()
       : "";
 
     return this.composeSpecs(
@@ -124,7 +125,7 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
               name: "opencode-web",
               mode: "service",
               env: {
-                HOME: "/root"
+                HOME: "/root",
               },
               after: ["install-opencode.service"],
               requires: ["install-opencode.service"],
@@ -175,11 +176,16 @@ class VmOpenCodeInstance extends VmWithInstance {
       vmPort: this.serverPort(),
     });
 
-        const auth = this.builder.options.web.username ? `${this.builder.options.web.username}:${this.builder.options.web.password}@` : "";
-
     return {
       client: createOpencodeClient({
-        baseUrl: `https://${auth}${resolvedDomain}`,
+        baseUrl: `https://${resolvedDomain}`,
+        headers: this.builder.options.server.username
+          ? {
+              Authorization: `Basic ${btoa(
+                `${this.builder.options.server.username}:${this.builder.options.server.password}`,
+              )}`,
+            }
+          : {},
       }),
     };
   }

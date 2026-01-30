@@ -50,19 +50,59 @@ const { client } = await vm.opencode.client({
 });
 ```
 
+### With Authentication
+
+```typescript
+import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { VmOpenCode } from "@freestyle-sh/with-opencode";
+
+const { vm } = await freestyle.vms.create({
+  spec: new VmSpec({
+    with: {
+      opencode: new VmOpenCode({
+        server: {
+          username: "serveradmin",
+          password: "secret-server-pass",
+        },
+        web: {
+          username: "webadmin",
+          password: "secret-web-pass",
+        },
+      }),
+    },
+  }),
+});
+
+// URLs will include credentials automatically
+const { url } = await vm.opencode.routeWeb();
+const { client } = await vm.opencode.client();
+```
+
 ## Options
 
 ```typescript
 new VmOpenCode({
-  serverPort: 4096, // Optional: API server port (default: 4096)
-  webPort: 4097,    // Optional: Web UI port (default: 4097)
-})
+  server: {
+    port: 4096, // Optional: API server port (default: 4096)
+    username: "admin", // Optional: Basic auth username (default: "opencode" when password is set)
+    password: "secret", // Optional: Basic auth password
+  },
+  web: {
+    port: 4097, // Optional: Web UI port (default: 4097)
+    username: "admin", // Optional: Basic auth username (default: "opencode" when password is set)
+    password: "secret", // Optional: Basic auth password
+  },
+});
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `serverPort` | `number` | `4096` | Port for the OpenCode API server |
-| `webPort` | `number` | `4097` | Port for the OpenCode web UI |
+| Option            | Type     | Default      | Description                                      |
+| ----------------- | -------- | ------------ | ------------------------------------------------ |
+| `server.port`     | `number` | `4096`       | Port for the OpenCode API server                 |
+| `server.username` | `string` | `"opencode"` | Basic auth username (only used if password set)  |
+| `server.password` | `string` | -            | Basic auth password for the API server           |
+| `web.port`        | `number` | `4097`       | Port for the OpenCode web UI                     |
+| `web.username`    | `string` | `"opencode"` | Basic auth username (only used if password set)  |
+| `web.password`    | `string` | -            | Basic auth password for the web UI               |
 
 ## API
 
@@ -71,9 +111,10 @@ new VmOpenCode({
 Exposes the OpenCode web UI on a public domain.
 
 **Options:**
+
 - `domain?: string` - Custom domain to use. If not specified, generates a random subdomain.
 
-**Returns:** `Promise<{ url: string }>`
+**Returns:** `Promise<{ url: string }>` - URL includes credentials if authentication is configured.
 
 ```typescript
 const { url } = await vm.opencode.routeWeb();
@@ -82,9 +123,10 @@ console.log(`OpenCode UI available at: ${url}`);
 
 ### `vm.opencode.client(options?)`
 
-Creates an OpenCode SDK client connected to the server.
+Creates an OpenCode SDK client connected to the server. The client is automatically configured with credentials if authentication is enabled.
 
 **Options:**
+
 - `domain?: string` - Custom domain for the API endpoint. If not specified, generates a random subdomain.
 
 **Returns:** `Promise<{ client: OpencodeClient }>`

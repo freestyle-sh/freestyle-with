@@ -5,10 +5,6 @@ import { VmOpenCode } from "../src/index.ts";
 const spec = new VmSpec({
   with: {
     opencode: new VmOpenCode({
-      server: {
-        password: "secret-server-pass",
-        username: "serveradmin",
-      },
       web: {
         password: "secret-web-pass",
         username: "webadmin",
