@@ -5,7 +5,7 @@ import {
   VmWithInstance,
   type Freestyle,
 } from "freestyle-sandboxes";
-import { createOpencodeClient } from "@opencode-ai/sdk";
+import { createOpencodeClient } from "@opencode-ai/sdk/v2";
 
 export type OpenCodeAuthOptions = {
   password?: string;
