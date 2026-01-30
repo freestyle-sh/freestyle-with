@@ -7,14 +7,42 @@ import {
 } from "freestyle-sandboxes";
 import { createOpencodeClient } from "@opencode-ai/sdk";
 
+export type OpenCodeAuthOptions = {
+    password?: string;
+    username?: string;
+  };
+
+export type ResolvedOpenCodeAuthOptions = {
+    password: string;
+    username: string;
+} | {
+    password?: undefined;
+    username?: undefined;
+};
+
 export type OpenCodeOptions = {
-  serverPort?: number;
-  webPort?: number;
+  server?: {
+    port?: number;
+  } & OpenCodeAuthOptions;
+  web?: {
+    port?: number;
+  } & OpenCodeAuthOptions;
 };
+
 export type OpenCodeResolvedOptions = {
-  serverPort: number;
-  webPort: number;
+  server: {
+    port: number;
+  } & ResolvedOpenCodeAuthOptions;
+  web: {
+    port: number;
+  } & ResolvedOpenCodeAuthOptions;
 };
+
+function resolveAuth(opts?: OpenCodeAuthOptions): ResolvedOpenCodeAuthOptions {
+  return opts?.password
+    ? { password: opts.password, username: opts.username ?? "opencode" }
+    : {};
+}
 
 export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
   options: OpenCodeResolvedOptions;
@@ -22,12 +50,24 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
   constructor(options?: OpenCodeOptions) {
     super();
     this.options = {
-      serverPort: options?.serverPort ?? 4096,
-      webPort: options?.webPort ?? 4097,
+      server: { port: options?.server?.port ?? 4096, ...resolveAuth(options?.server) },
+      web: { port: options?.web?.port ?? 4097, ...resolveAuth(options?.web) },
     };
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec {
+    const webAuthEnv = this.options.web.username
+      ? `
+      OPENCODE_WEB_USERNAME=${this.options.web.username} OPENCODE_WEB_PASSWORD=${this.options.web.password} 
+      `.trim()
+      : "";
+      
+    const serverAuthEnv = this.options.server.username ?
+      `
+      OPENCODE_SERVER_USERNAME=${this.options.server.username} OPENCODE_SERVER_PASSWORD=${this.options.server.password} 
+      `.trim()
+      : "";
+
     return this.composeSpecs(
       spec,
       new VmSpec({
@@ -44,7 +84,7 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
               #!/bin/bash
 
               export PATH="$HOME/.local/bin:$PATH"
-              /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.webPort}
+              ${webAuthEnv} /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.web.port}
               `,
           },
           "/opt/run-opencode-server.sh": {
@@ -52,7 +92,7 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
               #!/bin/bash
 
               export PATH="$HOME/.local/bin:$PATH"
-              /root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.serverPort}
+              ${serverAuthEnv} /root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.server.port}
               `,
           },
         },
@@ -84,7 +124,7 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
               name: "opencode-web",
               mode: "service",
               env: {
-                HOME: "/root",
+                HOME: "/root"
               },
               after: ["install-opencode.service"],
               requires: ["install-opencode.service"],
@@ -117,11 +157,11 @@ class VmOpenCodeInstance extends VmWithInstance {
   }
 
   webPort(): number {
-    return this.builder.options.webPort;
+    return this.builder.options.web.port;
   }
 
   serverPort(): number {
-    return this.builder.options.serverPort;
+    return this.builder.options.server.port;
   }
 
   async client({ domain }: { domain?: string } = {}) {
@@ -135,9 +175,11 @@ class VmOpenCodeInstance extends VmWithInstance {
       vmPort: this.serverPort(),
     });
 
+        const auth = this.builder.options.web.username ? `${this.builder.options.web.username}:${this.builder.options.web.password}@` : "";
+
     return {
       client: createOpencodeClient({
-        baseUrl: `https://${resolvedDomain}`,
+        baseUrl: `https://${auth}${resolvedDomain}`,
       }),
     };
   }
@@ -152,7 +194,6 @@ class VmOpenCodeInstance extends VmWithInstance {
       vmId: this.vm.vmId,
       vmPort: this.webPort(),
     });
-
     return {
       url: `https://${resolvedDomain}`,
     };
