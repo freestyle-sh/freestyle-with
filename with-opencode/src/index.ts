@@ -29,6 +29,7 @@ export type OpenCodeOptions = {
   web?: {
     port?: number;
   } & OpenCodeAuthOptions;
+  env?: Record<string, string>;
 };
 
 export type OpenCodeResolvedOptions = {
@@ -38,6 +39,7 @@ export type OpenCodeResolvedOptions = {
   web: {
     port: number;
   } & ResolvedOpenCodeAuthOptions;
+  env: Record<string, string>;
 };
 
 function resolveAuth(opts?: OpenCodeAuthOptions): ResolvedOpenCodeAuthOptions {
@@ -56,17 +58,25 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
         port: options?.server?.port ?? 4096,
         ...resolveAuth(options?.server),
       },
-      web: { port: options?.web?.port ?? 4097, ...resolveAuth(options?.web) },
+      web: {
+        port: options?.web?.port ?? 4097,
+        ...resolveAuth(options?.web),
+      },
+      env: options?.env ?? {},
     };
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec {
+    const envExports = Object.entries(this.options.env)
+      .map(([k, v]) => `export ${k}="${v}"`)
+      .join("\n");
+
     const webAuthEnv = this.options.web.username
-      ? `OPENCODE_SERVER_USERNAME=${this.options.web.username} OPENCODE_SERVER_PASSWORD=${this.options.web.password}`.trim()
+      ? `export OPENCODE_SERVER_USERNAME="${this.options.web.username}"\nexport OPENCODE_SERVER_PASSWORD="${this.options.web.password}"`
       : "";
 
     const serverAuthEnv = this.options.server.username
-      ? `OPENCODE_SERVER_USERNAME=${this.options.server.username} OPENCODE_SERVER_PASSWORD=${this.options.server.password}`.trim()
+      ? `export OPENCODE_SERVER_USERNAME="${this.options.server.username}"\nexport OPENCODE_SERVER_PASSWORD="${this.options.server.password}"`
       : "";
 
     return this.composeSpecs(
@@ -74,27 +84,25 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
       new VmSpec({
         additionalFiles: {
           "/opt/install-opencode.sh": {
-            content: `
-            #!/bin/bash
-
-            curl -fsSL https://opencode.ai/install | bash
-            `,
+            content: `#!/bin/bash
+curl -fsSL https://opencode.ai/install | bash
+`,
           },
           "/opt/run-opencode-web.sh": {
-            content: `
-              #!/bin/bash
-
-              export PATH="$HOME/.local/bin:$PATH"
-              ${webAuthEnv} /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.web.port}
-              `,
+            content: `#!/bin/bash
+export PATH="$HOME/.local/bin:$PATH"
+${webAuthEnv}
+${envExports}
+/root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.web.port}
+`,
           },
           "/opt/run-opencode-server.sh": {
-            content: `
-              #!/bin/bash
-
-              export PATH="$HOME/.local/bin:$PATH"
-              ${serverAuthEnv} /root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.server.port}
-              `,
+            content: `#!/bin/bash
+export PATH="$HOME/.local/bin:$PATH"
+${serverAuthEnv}
+${envExports}
+/root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.server.port}
+`,
           },
         },
         systemd: {
