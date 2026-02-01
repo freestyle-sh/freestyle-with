@@ -92,17 +92,21 @@ new VmOpenCode({
     username: "admin", // Optional: Basic auth username (default: "opencode" when password is set)
     password: "secret", // Optional: Basic auth password
   },
+  env: {
+    ANTHROPIC_API_KEY: "sk-ant-...", // Optional: Environment variables for OpenCode
+  },
 });
 ```
 
-| Option            | Type     | Default      | Description                                      |
-| ----------------- | -------- | ------------ | ------------------------------------------------ |
-| `server.port`     | `number` | `4096`       | Port for the OpenCode API server                 |
-| `server.username` | `string` | `"opencode"` | Basic auth username (only used if password set)  |
-| `server.password` | `string` | -            | Basic auth password for the API server           |
-| `web.port`        | `number` | `4097`       | Port for the OpenCode web UI                     |
-| `web.username`    | `string` | `"opencode"` | Basic auth username (only used if password set)  |
-| `web.password`    | `string` | -            | Basic auth password for the web UI               |
+| Option            | Type                     | Default      | Description                                      |
+| ----------------- | ------------------------ | ------------ | ------------------------------------------------ |
+| `server.port`     | `number`                 | `4096`       | Port for the OpenCode API server                 |
+| `server.username` | `string`                 | `"opencode"` | Basic auth username (only used if password set)  |
+| `server.password` | `string`                 | -            | Basic auth password for the API server           |
+| `web.port`        | `number`                 | `4097`       | Port for the OpenCode web UI                     |
+| `web.username`    | `string`                 | `"opencode"` | Basic auth username (only used if password set)  |
+| `web.password`    | `string`                 | -            | Basic auth password for the web UI               |
+| `env`             | `Record<string, string>` | `{}`         | Environment variables passed to OpenCode processes |
 
 ## API
 
