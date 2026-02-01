@@ -5,7 +5,9 @@ import {
   VmWithInstance,
   type Freestyle,
 } from "freestyle-sandboxes";
-import { createOpencodeClient } from "@opencode-ai/sdk/v2";
+import { createOpencodeClient, type Config as OpenCodeConfig } from "@opencode-ai/sdk/v2";
+
+export type { OpenCodeConfig };
 
 export type OpenCodeAuthOptions = {
   password?: string;
@@ -30,6 +32,7 @@ export type OpenCodeOptions = {
     port?: number;
   } & OpenCodeAuthOptions;
   env?: Record<string, string>;
+  config?: OpenCodeConfig;
 };
 
 export type OpenCodeResolvedOptions = {
@@ -40,6 +43,7 @@ export type OpenCodeResolvedOptions = {
     port: number;
   } & ResolvedOpenCodeAuthOptions;
   env: Record<string, string>;
+  config?: OpenCodeConfig;
 };
 
 function resolveAuth(opts?: OpenCodeAuthOptions): ResolvedOpenCodeAuthOptions {
@@ -63,6 +67,7 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
         ...resolveAuth(options?.web),
       },
       env: options?.env ?? {},
+      config: options?.config,
     };
   }
 
@@ -79,32 +84,47 @@ export class VmOpenCode extends VmWith<VmOpenCodeInstance> {
       ? `export OPENCODE_SERVER_USERNAME="${this.options.server.username}"\nexport OPENCODE_SERVER_PASSWORD="${this.options.server.password}"`
       : "";
 
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        additionalFiles: {
-          "/opt/install-opencode.sh": {
-            content: `#!/bin/bash
+    const configPath = "/opt/opencode-config.json";
+    const configExport = this.options.config
+      ? `export OPENCODE_CONFIG="${configPath}"`
+      : "";
+
+    const additionalFiles: Record<string, { content: string }> = {
+      "/opt/install-opencode.sh": {
+        content: `#!/bin/bash
 curl -fsSL https://opencode.ai/install | bash
 `,
-          },
-          "/opt/run-opencode-web.sh": {
-            content: `#!/bin/bash
+      },
+      "/opt/run-opencode-web.sh": {
+        content: `#!/bin/bash
 export PATH="$HOME/.local/bin:$PATH"
 ${webAuthEnv}
+${configExport}
 ${envExports}
 /root/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${this.options.web.port}
 `,
-          },
-          "/opt/run-opencode-server.sh": {
-            content: `#!/bin/bash
+      },
+      "/opt/run-opencode-server.sh": {
+        content: `#!/bin/bash
 export PATH="$HOME/.local/bin:$PATH"
 ${serverAuthEnv}
+${configExport}
 ${envExports}
 /root/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${this.options.server.port}
 `,
-          },
-        },
+      },
+    };
+
+    if (this.options.config) {
+      additionalFiles[configPath] = {
+        content: JSON.stringify(this.options.config, null, 2),
+      };
+    }
+
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
+        additionalFiles,
         systemd: {
           services: [
             {

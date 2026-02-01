@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-opencode",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@freestyle-sh/with-web-terminal": "workspace:*",
+    "@types/node": "^25.1.0",
     "pkgroll": "^2.11.2",
     "typescript": "^5.8.3"
   },
