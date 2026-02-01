@@ -8,4 +8,5 @@ packages:
   - "with-ruby"
   - "with-web-terminal"
   - "with-opencode"
+  - "with-sandbox-agent"
   - "types/*"
