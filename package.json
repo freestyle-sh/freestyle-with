@@ -13,6 +13,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r run build",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "scaffold": "bun scripts/scaffold.ts"
   }
 }
