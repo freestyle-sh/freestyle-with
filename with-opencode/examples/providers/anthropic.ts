@@ -3,7 +3,7 @@ import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmOpenCode, type OpenCodeConfig } from "../../src/index.ts";
 
 const config: OpenCodeConfig = {
-  model: "anthropic/claude-sonnet-4-20250514",
+  model: "claude-sonnet-4-5-20250929",
   autoupdate: false,
 };
 
