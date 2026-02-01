@@ -108,6 +108,34 @@ new VmOpenCode({
 | `web.password`    | `string`                 | -            | Basic auth password for the web UI               |
 | `env`             | `Record<string, string>` | `{}`         | Environment variables passed to OpenCode processes |
 
+## Environment Variables
+
+OpenCode requires API keys to interact with AI providers. When running in a Freestyle VM, pass the required keys using the `env` option.
+
+> **Note:** Environment variables are stored as plain text in the VM's startup scripts. Users with direct or indirect access to the VM may be able to view these values. Use appropriately scoped API keys and rotate them if the VM is shared or exposed.
+
+| Variable              | Description                |
+| --------------------- | -------------------------- |
+| `ANTHROPIC_API_KEY`   | API key for Claude models  |
+| `OPENAI_API_KEY`      | API key for OpenAI models  |
+| `OPENROUTER_API_KEY`  | API key for OpenRouter     |
+
+See [OpenCode Providers](https://opencode.ai/docs/providers/) for all supported providers and their environment variables.
+
+```typescript
+const { vm } = await freestyle.vms.create({
+  spec: new VmSpec({
+    with: {
+      opencode: new VmOpenCode({
+        env: {
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+        },
+      }),
+    },
+  }),
+});
+```
+
 ## API
 
 ### `vm.opencode.routeWeb(options?)`
