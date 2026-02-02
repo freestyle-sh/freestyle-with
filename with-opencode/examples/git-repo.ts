@@ -57,10 +57,10 @@ console.log("\n--- Streaming response ---\n");
 // Start consuming the stream and sending the prompt concurrently
 const streamPromise = (async () => {
   for await (const event of events.stream) {
-    const { payload } = event as { payload: { type: string; properties: any } };
+    const normalized = (event as any).payload ?? event;
 
-    if (payload.type === "message.part.updated") {
-      const { part, delta } = payload.properties;
+    if (normalized.type === "message.part.updated") {
+      const { part, delta } = normalized.properties;
 
       // Stream text deltas as they arrive
       if (part.type === "text" && delta) {
@@ -75,8 +75,8 @@ const streamPromise = (async () => {
 
     // Stop when the session becomes idle
     if (
-      payload.type === "session.idle" &&
-      payload.properties.sessionID === session.data!.id
+      normalized.type === "session.idle" &&
+      normalized.properties.sessionID === session.data!.id
     ) {
       console.log("\n\n--- Response complete ---");
       break;
@@ -87,6 +87,7 @@ const streamPromise = (async () => {
 // Start the prompt asynchronously
 const promptResult = await client.session.promptAsync({
   sessionID: session.data!.id!,
+  directory: "/repo",
   model: {
     modelID: "claude-sonnet-4-5-20250929",
     providerID: "anthropic",
