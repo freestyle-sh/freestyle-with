@@ -20,20 +20,18 @@ const spec = new VmSpec({
       config: {
         model: "claude-sonnet-4-5-20250929",
         autoupdate: false,
-      }
+      },
     }),
   },
   gitRepos: [
     {
       repo: "https://github.com/freestyle-sh/freestyle-with",
       path: "/repo",
-    }
-  ]
-  
+    },
+  ],
 });
 
 const { vm } = await freestyle.vms.create({ spec });
-
 
 // Expose the web UI
 const web = await vm.opencode.routeWeb();
@@ -50,7 +48,6 @@ console.log("Repo contents:", repoFiles.data);
 // Create a session in the repo directory
 const session = await client.session.create({ directory: "/repo" });
 console.log("Session created in /repo:", session.data?.id);
-
 
 // Subscribe to global events to stream the response
 const events = await client.global.event();
@@ -90,6 +87,10 @@ const streamPromise = (async () => {
 // Start the prompt asynchronously
 const promptResult = await client.session.promptAsync({
   sessionID: session.data!.id!,
+  model: {
+    modelID: "claude-sonnet-4-5-20250929",
+    providerID: "anthropic",
+  },
   parts: [{ type: "text", text: "Explain the purpose of this repository." }],
 });
 
