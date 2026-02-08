@@ -72,6 +72,22 @@ importers:
         specifier: ^0.1.13
         version: 0.1.14
 
+  with-k3s:
+    dependencies:
+      freestyle-sandboxes:
+        specifier: ^0.1.14
+        version: 0.1.14
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.7
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   with-nodejs:
     dependencies:
       '@freestyle-sh/with-type-js':

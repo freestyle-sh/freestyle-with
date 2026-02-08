@@ -9,4 +9,5 @@ packages:
   - "with-web-terminal"
   - "with-opencode"
   - "with-sandbox-agent"
+  - "with-k3s"
   - "types/*"
