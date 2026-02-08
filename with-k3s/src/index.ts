@@ -130,9 +130,10 @@ export class VmK3sInstance extends VmWithInstance {
    * @returns Result indicating success or failure
    */
   async applyManifest(manifest: string): Promise<ApplyManifestResult> {
-    // Escape the manifest for shell
+    // Use a temporary file to avoid shell injection risks
+    const tmpFile = `/tmp/k3s-manifest-${Date.now()}.yaml`;
     const escapedManifest = manifest.replace(/'/g, "'\\''");
-    const command = `echo '${escapedManifest}' | kubectl apply -f -`;
+    const command = `cat > '${tmpFile}' << 'EOF'\n${manifest}\nEOF\nkubectl apply -f '${tmpFile}' && rm -f '${tmpFile}'`;
     
     const result = await this.vm.exec({ command });
 
