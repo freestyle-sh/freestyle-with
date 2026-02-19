@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-web-terminal",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Web terminal for freestyle sandboxes",
   "type": "module",
   "main": "./dist/index.js",
