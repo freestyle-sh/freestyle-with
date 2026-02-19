@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-web-terminal",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Web terminal for freestyle sandboxes",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,7 +16,12 @@
     "build": "pkgroll",
     "prepublishOnly": "pnpm run build"
   },
-  "keywords": ["ttyd", "terminal", "web-terminal", "freestyle"],
+  "keywords": [
+    "ttyd",
+    "terminal",
+    "web-terminal",
+    "freestyle"
+  ],
   "author": "",
   "packageManager": "pnpm@10.11.0",
   "devDependencies": {
