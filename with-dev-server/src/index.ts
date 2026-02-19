@@ -13,7 +13,7 @@ export const createSnapshotSpec = (
       repos: [
         {
           repo: templateRepo,
-          path: "/repo",
+          path: workdir,
         },
       ],
     },
@@ -193,7 +193,7 @@ export class VmDevServerInstance extends VmWithInstance {
 export class VmDevServer extends VmWith<VmDevServerInstance> {
   templateRepo?: string;
   repo?: string;
-  workdir = "/repo";
+  workdir: string;
 
   override createInstance(): VmDevServerInstance {
     return new VmDevServerInstance({
