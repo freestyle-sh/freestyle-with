@@ -1,7 +1,10 @@
 import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 import { Vm, VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
 
-export const createSnapshotSpec = (templateRepo: string): VmSpec => {
+export const createSnapshotSpec = (
+  templateRepo: string,
+  workdir: string,
+): VmSpec => {
   const newSpec = new VmSpec({
     with: {
       nodejs: new VmNodeJs({}),
@@ -20,14 +23,14 @@ export const createSnapshotSpec = (templateRepo: string): VmSpec => {
           name: "npm-install",
           bash: "npm install",
           mode: "oneshot",
-          workdir: "/repo",
+          workdir: workdir,
         },
         {
           name: "npm-dev",
           bash: "npm run dev",
           after: ["npm-install"],
           requires: ["npm-install"],
-          workdir: "/repo",
+          workdir: workdir,
         },
         {
           name: "curl-test",
@@ -41,7 +44,7 @@ done'
           mode: "oneshot",
           after: ["npm-dev"],
           requires: ["npm-dev"],
-          workdir: "/repo",
+          workdir: workdir,
           timeoutSec: 10,
         },
       ],
@@ -213,7 +216,7 @@ export class VmDevServer extends VmWith<VmDevServerInstance> {
     if (this.templateRepo) {
       const composed = this.composeSpecs(
         spec,
-        createSnapshotSpec(this.templateRepo),
+        createSnapshotSpec(this.templateRepo, this.workdir),
       );
       return composed;
     }
