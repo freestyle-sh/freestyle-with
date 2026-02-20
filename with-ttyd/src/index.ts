@@ -23,6 +23,8 @@ export type TtydConfig = {
   title?: string;
   /** Read-only terminal (no input allowed) */
   readOnly?: boolean;
+  /** Xterm.js theme settings passed to ttyd client options */
+  theme?: Record<string, string | number | boolean>;
 };
 
 export type ResolvedTerminalConfig = {
@@ -33,6 +35,7 @@ export type ResolvedTerminalConfig = {
   credential?: { username: string; password: string };
   title: string;
   readOnly: boolean;
+  theme?: Record<string, string | number | boolean>;
 };
 
 // ============================================================================
@@ -73,6 +76,7 @@ export class VmWebTerminal<
         credential: config.credential,
         title: config.title ?? `terminal-${port}`,
         readOnly: config.readOnly ?? false,
+        theme: config.theme,
       };
     });
   }
@@ -127,6 +131,11 @@ export class VmWebTerminal<
         args.push(`--readonly`);
       } else {
         args.push(`--writable`);
+      }
+
+      if (t.theme) {
+        const themeJson = JSON.stringify(t.theme);
+        args.push(`-t 'theme=${themeJson}'`);
       }
 
       // Shell command at the end
