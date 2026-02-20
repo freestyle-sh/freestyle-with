@@ -2,10 +2,15 @@ import "dotenv/config";
 import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmWebTerminal as VmTtyd } from "../src/index.ts";
 import { VmDevServer } from "../../with-dev-server/src/index.ts";
+import { VmPtySession } from "../../with-pty/src/index.ts";
 
-const devLogs = new VmTtyd({
+const devPty = new VmPtySession({
+  sessionId: "npm-dev",
+});
+
+const devCommandTtyd = new VmTtyd({
   port: 3010,
-  command: "bash -lc 'bash /opt/dev-logs.sh'",
+  pty: devPty,
   readOnly: true,
   cwd: "/root/repo",
 });
@@ -17,57 +22,20 @@ const otherTerminals = new VmTtyd({
 
 const domain = `${crypto.randomUUID()}.style.dev`;
 
-const innerDeps = new VmSpec({
-  discriminator: "inner-deps",
-  with: {
-    devLogs: devLogs,
-    otherTerminals: otherTerminals,
-  },
-  aptDeps: ["tmux"],
-  // systemd: {
-  //   services: [
-  //     {
-  //       name: "install-tmux",
-  //       mode: "oneshot",
-  //       bash: "apt-get update && apt-get install -y tmux",
-  //       timeoutSec: 120,
-  //     },
-  //   ],
-  // },
-  additionalFiles: {
-    "/root/.tmux.conf": {
-      content: `set -g mouse on
-set -g status off`,
-    },
-    "/opt/dev-logs.sh": {
-      content: `#!/usr/bin/env bash
-set -euo pipefail
-
-tmux new -A -s dev-logs "tail -n 200 -F /root/dev.log"`,
-    },
-    "/opt/dev-server.sh": {
-      content: `#!/usr/bin/env bash
-set -euo pipefail
-
-set -o pipefail
-: > /root/dev.log
-FORCE_COLOR=1 npm run dev 2>&1 | tee -a /root/dev.log`,
-    },
-  },
-});
-
 const snapshot = new VmSpec({
-  snapshot: innerDeps,
   with: {
+    devCommandTtyd: devCommandTtyd,
+    otherTerminals: otherTerminals,
     devServer: new VmDevServer({
       templateRepo: "https://github.com/freestyle-sh/freestyle-next",
       workdir: "/root/repo",
-      devCommand: "bash -lc 'bash /opt/dev-server.sh'",
+      devCommand: "npm run dev",
+      devCommandPty: devPty,
     }),
   },
 });
 
-const { vm, vmId } = await freestyle.vms.create({
+const { vmId, vm } = await freestyle.vms.create({
   snapshot: snapshot,
   domains: [
     {
@@ -84,6 +52,8 @@ const { vm, vmId } = await freestyle.vms.create({
     },
   ],
 });
+
+await vm.devServer.getLogs().then(console.log);
 
 console.log("npx freestyle-sandboxes vm ssh " + vmId);
 console.log(`Dev server available at: https://${domain}`);

@@ -29,6 +29,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.27"
+    "freestyle-sandboxes": "^0.1.28"
   }
 }

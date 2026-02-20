@@ -5,7 +5,7 @@
   "private": false,
   "dependencies": {
     "@freestyle-sh/with-type-js": "workspace:^",
-    "freestyle-sandboxes": "^0.1.27"
+    "freestyle-sandboxes": "^0.1.28"
   },
   "type": "module",
   "main": "./dist/index.js",

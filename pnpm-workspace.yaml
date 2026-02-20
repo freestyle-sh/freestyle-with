@@ -11,4 +11,5 @@ packages:
   - "with-sandbox-agent"
   - "with-dev-server"
   - "with-ttyd"
+  - "with-pty"
   - "types/*"

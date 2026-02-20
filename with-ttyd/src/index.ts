@@ -1,10 +1,6 @@
-import {
-  VmTemplate,
-  type CreateVmOptions,
-  VmWith,
-  VmWithInstance,
-  Freestyle,
-} from "freestyle-sandboxes";
+import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
+import type { VmPtySessionLike } from "@freestyle-sh/with-pty";
+import type { Freestyle } from "freestyle-sandboxes";
 
 // ============================================================================
 // Configuration Types
@@ -15,6 +11,8 @@ export type TtydConfig = {
   port?: number;
   /** Shell or command to run (default: /bin/bash) */
   command?: string;
+  /** Attach ttyd to a PTY session */
+  pty?: VmPtySessionLike;
   /** User to run terminal as (default: current user) */
   user?: string;
   /** Working directory (default: user home) */
@@ -45,17 +43,31 @@ export class VmWebTerminal<
   T extends TtydConfig[] = TtydConfig[],
 > extends VmWith<VmWebTerminalInstance<T>> {
   private resolvedTerminals: ResolvedTerminalConfig[];
+  private ptySessions: VmPtySessionLike[];
 
   constructor(terminals: T | TtydConfig) {
     super();
     const terminalList = Array.isArray(terminals) ? terminals : [terminals];
+    this.ptySessions = terminalList
+      .map((config) => config.pty)
+      .filter((value): value is VmPtySessionLike => value !== undefined);
     // Resolve config once with defaults
     let nextPort = 7682;
     this.resolvedTerminals = terminalList.map((config) => {
+      if (config.pty && config.command) {
+        throw new Error(
+          "VmWebTerminal config cannot include both pty and command. Use one or the other.",
+        );
+      }
+
       const port = config.port ?? nextPort++;
+      const resolvedCommand = config.pty
+        ? config.pty.attachCommand(config.readOnly ?? false)
+        : (config.command ?? "bash -l");
+
       return {
         port,
-        command: config.command ?? "bash -l",
+        command: resolvedCommand,
         user: config.user ?? "root",
         cwd: config.cwd ?? "/root",
         credential: config.credential,
@@ -65,9 +77,14 @@ export class VmWebTerminal<
     });
   }
 
-  override configure(
-    existingConfig: CreateVmOptions,
-  ): CreateVmOptions | Promise<CreateVmOptions> {
+  private composeTtydSpec(spec: VmSpec): VmSpec {
+    const uniquePtySessions = Array.from(new Set(this.ptySessions));
+    let composed = spec;
+
+    for (const pty of uniquePtySessions) {
+      composed = pty.applyToSpec(composed) as VmSpec;
+    }
+
     // Generate install script
     const installScript = `#!/bin/bash
   set -e
@@ -128,8 +145,9 @@ export class VmWebTerminal<
       };
     });
 
-    const config: CreateVmOptions = {
-      template: new VmTemplate({
+    return this.composeSpecs(
+      composed,
+      new VmSpec({
         additionalFiles: {
           "/opt/install-ttyd.sh": { content: installScript },
         },
@@ -146,9 +164,15 @@ export class VmWebTerminal<
           ],
         },
       }),
-    };
+    );
+  }
 
-    return this.compose(existingConfig, config);
+  override configureSnapshotSpec(spec: VmSpec): VmSpec {
+    return this.composeTtydSpec(spec);
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    return this.composeTtydSpec(spec);
   }
 
   createInstance(): VmWebTerminalInstance<T> {
@@ -167,7 +191,7 @@ export class VmWebTerminal<
 export class WebTerminal {
   readonly port: number;
   readonly command: string;
-  private instance: VmWebTerminalInstance<any>;
+  private instance: VmWebTerminalInstance<TtydConfig[]>;
 
   constructor({
     port,
@@ -176,7 +200,7 @@ export class WebTerminal {
   }: {
     port: number;
     command: string;
-    instance: VmWebTerminalInstance<any>;
+    instance: VmWebTerminalInstance<TtydConfig[]>;
   }) {
     this.port = port;
     this.command = command;

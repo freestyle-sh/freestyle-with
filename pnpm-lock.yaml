@@ -39,20 +39,20 @@ importers:
         specifier: workspace:^
         version: link:../with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   types/with-type-js-deps:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   types/with-type-run-code:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-bun:
     dependencies:
@@ -60,17 +60,20 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-dev-server:
     dependencies:
       '@freestyle-sh/with-nodejs':
         specifier: workspace:^
         version: link:../with-nodejs
+      '@freestyle-sh/with-pty':
+        specifier: workspace:^
+        version: link:../with-pty
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-java:
     dependencies:
@@ -78,8 +81,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-nodejs:
     dependencies:
@@ -87,8 +90,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-opencode:
     dependencies:
@@ -96,8 +99,8 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
     devDependencies:
       '@freestyle-sh/with-web-terminal':
         specifier: workspace:*
@@ -115,8 +118,21 @@ importers:
   with-postgres:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
+
+  with-pty:
+    dependencies:
+      freestyle-sandboxes:
+        specifier: ^0.1.28
+        version: 0.1.28
+    devDependencies:
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   with-python:
     dependencies:
@@ -124,8 +140,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-ruby:
     dependencies:
@@ -133,14 +149,14 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-sandbox-agent:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
       sandbox-agent:
         specifier: ^0.1.3
         version: 0.1.3
@@ -157,9 +173,12 @@ importers:
 
   with-ttyd:
     dependencies:
+      '@freestyle-sh/with-pty':
+        specifier: workspace:^
+        version: link:../with-pty
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
     devDependencies:
       pkgroll:
         specifier: ^2.11.2
@@ -174,14 +193,14 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-run-code
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
 
   with-web-terminal:
     dependencies:
       freestyle-sandboxes:
-        specifier: ^0.1.27
-        version: 0.1.27
+        specifier: ^0.1.28
+        version: 0.1.28
     devDependencies:
       pkgroll:
         specifier: ^2.11.2
@@ -904,8 +923,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  freestyle-sandboxes@0.1.27:
-    resolution: {integrity: sha512-Xizm6W9Ko9xBiRSDBCuEM88YYTq0LVE2gyNHOR/6DSwzkevezKdLoOmnF7I59mtI+M9IbpQ+1JgyJ+IgaIBxFQ==}
+  freestyle-sandboxes@0.1.28:
+    resolution: {integrity: sha512-4qYRgYXcapCk8FZPi3KZlj5H/nmRY0EFVooT/lVZ5j1McOyyxL2RcHSoGe5EO+ggSTtPi8zqv8CWdnfTiCYpHQ==}
     hasBin: true
 
   fsevents@2.3.3:
@@ -1890,7 +1909,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  freestyle-sandboxes@0.1.27:
+  freestyle-sandboxes@0.1.28:
     optionalDependencies:
       dotenv: 17.3.1
       glob: 13.0.6
