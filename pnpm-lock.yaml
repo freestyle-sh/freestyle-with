@@ -115,6 +115,15 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  with-playwright:
+    dependencies:
+      '@freestyle-sh/with-type-js':
+        specifier: workspace:^
+        version: link:../types/with-type-js
+      freestyle-sandboxes:
+        specifier: ^0.1.28
+        version: 0.1.28
+
   with-postgres:
     dependencies:
       freestyle-sandboxes:

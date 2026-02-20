@@ -1,0 +1,27 @@
+{
+  "name": "@freestyle-sh/with-playwright",
+  "version": "0.2.7",
+  "packageManager": "pnpm@10.11.0",
+  "private": false,
+  "dependencies": {
+    "@freestyle-sh/with-type-js": "workspace:^",
+    "freestyle-sandboxes": "^0.1.28"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "source": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pkgroll",
+    "prepublishOnly": "pnpm run build"
+  }
+}
