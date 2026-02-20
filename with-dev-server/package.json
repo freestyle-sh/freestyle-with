@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-dev-server",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
