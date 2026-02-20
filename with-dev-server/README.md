@@ -30,6 +30,7 @@ const { vm } = await freestyle.vms.create({
       devServer: new VmDevServer({
         workdir: "/repo",
         templateRepo: TEMPLATE_REPO,
+        devCommand: "npm run dev",
       }),
     },
   }),

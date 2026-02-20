@@ -4,6 +4,7 @@ import { Vm, VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
 export const createSnapshotSpec = (
   templateRepo: string,
   workdir: string,
+  devCommand?: string,
 ): VmSpec => {
   const newSpec = new VmSpec({
     with: {
@@ -27,7 +28,7 @@ export const createSnapshotSpec = (
         },
         {
           name: "npm-dev",
-          bash: "npm run dev",
+          bash: devCommand ?? "npm run dev",
           after: ["npm-install"],
           requires: ["npm-install"],
           workdir: workdir,
@@ -55,12 +56,12 @@ done'
 };
 
 export class VmDevServerInstance extends VmWithInstance {
-  constructor(
-    public options: {
-      workdir: string;
-    },
-  ) {
+  options: {
+    workdir: string;
+  };
+  constructor(options: { workdir: string }) {
     super();
+    this.options = options;
   }
 
   private shellEscape(value: string): string {
@@ -194,6 +195,7 @@ export class VmDevServer extends VmWith<VmDevServerInstance> {
   templateRepo?: string;
   repo?: string;
   workdir: string;
+  devCommand?: string;
 
   override createInstance(): VmDevServerInstance {
     return new VmDevServerInstance({
@@ -205,18 +207,20 @@ export class VmDevServer extends VmWith<VmDevServerInstance> {
     templateRepo?: string;
     repo?: string;
     workdir?: string;
+    devCommand?: string;
   }) {
     super();
     this.templateRepo = options.templateRepo;
     this.repo = options.repo;
     this.workdir = options.workdir ?? "/repo";
+    this.devCommand = options.devCommand;
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec | Promise<VmSpec> {
     if (this.templateRepo) {
       const composed = this.composeSpecs(
         spec,
-        createSnapshotSpec(this.templateRepo, this.workdir),
+        createSnapshotSpec(this.templateRepo, this.workdir, this.devCommand),
       );
       return composed;
     }

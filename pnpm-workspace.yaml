@@ -10,4 +10,5 @@ packages:
   - "with-opencode"
   - "with-sandbox-agent"
   - "with-dev-server"
+  - "with-ttyd"
   - "types/*"

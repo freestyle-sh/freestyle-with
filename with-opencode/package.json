@@ -5,7 +5,7 @@
   "private": false,
   "dependencies": {
     "@opencode-ai/sdk": "^1.1.42",
-    "freestyle-sandboxes": "^0.1.13"
+    "freestyle-sandboxes": "^0.1.27"
   },
   "devDependencies": {
     "@freestyle-sh/with-web-terminal": "workspace:*",
