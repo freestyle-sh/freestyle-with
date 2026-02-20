@@ -5,7 +5,7 @@ import { VmDevServer } from "../../with-dev-server/src/index.ts";
 
 const devLogs = new VmTtyd({
   port: 3010,
-  command: "tmux attach -t dev-server",
+  command: "bash -lc 'bash /opt/dev-logs.sh'",
   readOnly: true,
   cwd: "/root/repo",
 });
@@ -36,7 +36,22 @@ const innerDeps = new VmSpec({
   // },
   additionalFiles: {
     "/root/.tmux.conf": {
-      content: `set -g mouse on`,
+      content: `set -g mouse on
+set -g status off`,
+    },
+    "/opt/dev-logs.sh": {
+      content: `#!/usr/bin/env bash
+set -euo pipefail
+
+tmux new -A -s dev-logs "tail -n 200 -F /root/dev.log"`,
+    },
+    "/opt/dev-server.sh": {
+      content: `#!/usr/bin/env bash
+set -euo pipefail
+
+set -o pipefail
+: > /root/dev.log
+FORCE_COLOR=1 npm run dev 2>&1 | tee -a /root/dev.log`,
     },
   },
 });
@@ -47,7 +62,7 @@ const snapshot = new VmSpec({
     devServer: new VmDevServer({
       templateRepo: "https://github.com/freestyle-sh/freestyle-next",
       workdir: "/root/repo",
-      devCommand: "tmux new -s dev-server npm run dev",
+      devCommand: "bash -lc 'bash /opt/dev-server.sh'",
     }),
   },
 });
@@ -55,6 +70,10 @@ const snapshot = new VmSpec({
 const { vm, vmId } = await freestyle.vms.create({
   snapshot: snapshot,
   domains: [
+    {
+      domain: domain,
+      vmPort: 3000,
+    },
     {
       domain: "dev-logs-" + domain,
       vmPort: 3010,
@@ -67,6 +86,6 @@ const { vm, vmId } = await freestyle.vms.create({
 });
 
 console.log("npx freestyle-sandboxes vm ssh " + vmId);
-
+console.log(`Dev server available at: https://${domain}`);
 console.log(`Terminal available at: https://dev-logs-${domain}`);
 console.log(`Other terminals available at: https://other-terminals-${domain}`);

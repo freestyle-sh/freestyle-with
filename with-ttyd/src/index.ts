@@ -70,13 +70,16 @@ export class VmWebTerminal<
   ): CreateVmOptions | Promise<CreateVmOptions> {
     // Generate install script
     const installScript = `#!/bin/bash
-set -e
+  set -e
 
-TTYD_VERSION="1.7.7"
-curl -fsSL -o /usr/local/bin/ttyd "https://github.com/tsl0922/ttyd/releases/download/\${TTYD_VERSION}/ttyd.x86_64"
-chmod +x /usr/local/bin/ttyd
-/usr/local/bin/ttyd --version
-`;
+  TTYD_VERSION="1.7.7"
+  mkdir -p /usr/local/bin
+  tmpfile="$(mktemp)"
+  curl -fsSL -o "$tmpfile" "https://github.com/tsl0922/ttyd/releases/download/\${TTYD_VERSION}/ttyd.x86_64"
+  mv "$tmpfile" /usr/local/bin/ttyd
+  chmod +x /usr/local/bin/ttyd
+  /usr/local/bin/ttyd --version
+  `;
 
     // Generate systemd service for each terminal
     const services = this.resolvedTerminals.map((t) => {
