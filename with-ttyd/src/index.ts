@@ -25,6 +25,8 @@ export type TtydConfig = {
   readOnly?: boolean;
   /** Xterm.js theme settings passed to ttyd client options */
   theme?: Record<string, string | number | boolean>;
+  /** TTYD client options (xterm.js options, ttyd client flags) */
+  clientOptions?: Record<string, unknown>;
 };
 
 export type ResolvedTerminalConfig = {
@@ -36,6 +38,7 @@ export type ResolvedTerminalConfig = {
   title: string;
   readOnly: boolean;
   theme?: Record<string, string | number | boolean>;
+  clientOptions?: Record<string, unknown>;
 };
 
 // ============================================================================
@@ -77,6 +80,7 @@ export class VmWebTerminal<
         title: config.title ?? `terminal-${port}`,
         readOnly: config.readOnly ?? false,
         theme: config.theme,
+        clientOptions: config.clientOptions,
       };
     });
   }
@@ -133,9 +137,31 @@ export class VmWebTerminal<
         args.push(`--writable`);
       }
 
+      if (t.theme && t.clientOptions && "theme" in t.clientOptions) {
+        throw new Error(
+          `Client option conflict for terminal on port ${t.port}: theme is set in both theme and clientOptions`,
+        );
+      }
+
+      const clientOptions: Record<string, unknown> = {
+        ...(t.clientOptions ?? {}),
+      };
+
       if (t.theme) {
-        const themeJson = JSON.stringify(t.theme);
-        args.push(`-t 'theme=${themeJson}'`);
+        clientOptions.theme = t.theme;
+      }
+
+      for (const [key, value] of Object.entries(clientOptions)) {
+        if (value === undefined) {
+          continue;
+        }
+        const serialized =
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean"
+            ? String(value)
+            : JSON.stringify(value);
+        args.push(`-t '${key}=${serialized}'`);
       }
 
       // Shell command at the end
