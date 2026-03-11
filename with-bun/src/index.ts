@@ -63,6 +63,9 @@ export PATH="$BUN_INSTALL/bin:$PATH"
               name: "install-bun",
               mode: "oneshot",
               deleteAfterSuccess: true,
+              env: {
+                HOME: "/root",
+              },
               exec: ["bash /opt/install-bun.sh"],
               timeoutSec: 300,
             },
