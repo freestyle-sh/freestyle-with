@@ -2,64 +2,85 @@ import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 import type { VmPtySessionLike } from "@freestyle-sh/with-pty";
 import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
 
+export type DevServerOptions = {
+  templateRepo?: string;
+  repo?: string;
+  workdir?: string;
+  port?: number;
+  installCommand?: string;
+  devCommand?: string;
+  runtime?: VmWith<VmWithInstance> & { installServiceName(): string };
+  devCommandPty?: VmPtySessionLike;
+};
+
+type DevServerResolvedOptions = {
+  templateRepo?: string;
+  repo?: string;
+  workdir: string;
+  port: number;
+  installCommand: string;
+  devCommand: string;
+  runtime: VmWith<VmWithInstance> & { installServiceName(): string };
+  devCommandPty?: VmPtySessionLike;
+};
+
 export const createSnapshotSpec = (
-  templateRepo: string,
-  workdir: string,
-  devCommand?: string,
-  devCommandPty?: VmPtySessionLike,
+  options: DevServerResolvedOptions,
 ): VmSpec => {
-  const resolvedDevCommand = devCommandPty
-    ? devCommandPty.wrapServiceCommand(devCommand ?? "npm run dev", workdir)
-    : (devCommand ?? "npm run dev");
+  const resolvedDevCommand = options.devCommandPty
+    ? options.devCommandPty.wrapServiceCommand(options.devCommand, options.workdir)
+    : options.devCommand;
 
   let newSpec = new VmSpec({
     with: {
-      nodejs: new VmNodeJs({}),
+      runtime: options.runtime,
     },
     git: {
       repos: [
         {
-          repo: templateRepo,
-          path: workdir,
+          repo: options.templateRepo!,
+          path: options.workdir,
         },
       ],
     },
     systemd: {
       services: [
         {
-          name: "npm-install",
-          bash: "npm install",
+          name: "dev-server-install",
+          bash: options.installCommand,
           mode: "oneshot",
-          workdir: workdir,
+          workdir: options.workdir,
+          after: [options.runtime.installServiceName()],
+          requires: [options.runtime.installServiceName()],
         },
         {
-          name: "npm-dev",
+          name: "dev-server",
           bash: resolvedDevCommand,
-          after: ["npm-install"],
-          requires: ["npm-install"],
-          workdir: workdir,
+          after: ["dev-server-install"],
+          requires: ["dev-server-install"],
+          workdir: options.workdir,
         },
         {
-          name: "curl-test",
+          name: "dev-server-health",
           bash: `
 set -e
-timeout 10 bash -c 'while ! curl http://localhost:3000; do
+timeout 10 bash -c 'while ! curl http://localhost:${options.port}; do
   echo "Retrying..."
   sleep 1
 done'
 `,
           mode: "oneshot",
-          after: ["npm-dev"],
-          requires: ["npm-dev"],
-          workdir: workdir,
+          after: ["dev-server"],
+          requires: ["dev-server"],
+          workdir: options.workdir,
           timeoutSec: 10,
         },
       ],
     },
   });
 
-  if (devCommandPty) {
-    newSpec = devCommandPty.applyToSpec(newSpec) as VmSpec;
+  if (options.devCommandPty) {
+    newSpec = options.devCommandPty.applyToSpec(newSpec) as VmSpec;
   }
 
   return newSpec;
@@ -87,7 +108,7 @@ export class VmDevServerInstance extends VmWithInstance {
     showCursor?: boolean;
     output?: string;
   }): string {
-    const unit = options.unit ?? "npm-dev";
+    const unit = options.unit ?? "dev-server";
     const parts = ["journalctl", "-u", this.shellEscape(unit), "--no-pager"];
 
     if (options.output) {
@@ -124,7 +145,7 @@ export class VmDevServerInstance extends VmWithInstance {
   }> {
     const pty = this.options.devCommandPty;
     const shouldUsePtyLogs =
-      pty && (options?.unit === undefined || options.unit === "npm-dev");
+      pty && (options?.unit === undefined || options.unit === "dev-server");
 
     if (shouldUsePtyLogs) {
       return await this.vm.exec({
@@ -153,7 +174,7 @@ export class VmDevServerInstance extends VmWithInstance {
   }): AsyncGenerator<string> {
     const pty = this.options.devCommandPty;
     const shouldUsePtyLogs =
-      pty && (options?.unit === undefined || options.unit === "npm-dev");
+      pty && (options?.unit === undefined || options.unit === "dev-server");
 
     if (shouldUsePtyLogs) {
       const pollIntervalMs = options?.pollIntervalMs ?? 1000;
@@ -256,49 +277,37 @@ export class VmDevServerInstance extends VmWithInstance {
     stdout?: string | undefined | null;
     stderr?: string | undefined | null;
   }> {
-    return await this.vm.exec("systemctl restart npm-dev");
+    return await this.vm.exec("systemctl restart dev-server");
   }
 }
 
 export class VmDevServer extends VmWith<VmDevServerInstance> {
-  templateRepo?: string;
-  repo?: string;
-  workdir: string;
-  devCommand?: string;
-  devCommandPty?: VmPtySessionLike;
+  options: DevServerResolvedOptions;
 
   override createInstance(): VmDevServerInstance {
     return new VmDevServerInstance({
-      workdir: this.workdir,
-      devCommandPty: this.devCommandPty,
+      workdir: this.options.workdir,
+      devCommandPty: this.options.devCommandPty,
     });
   }
 
-  constructor(options: {
-    templateRepo?: string;
-    repo?: string;
-    workdir?: string;
-    devCommand?: string;
-    devCommandPty?: VmPtySessionLike;
-  }) {
+  constructor(options: DevServerOptions) {
     super();
-    this.templateRepo = options.templateRepo;
-    this.repo = options.repo;
-    this.workdir = options.workdir ?? "/repo";
-    this.devCommand = options.devCommand;
-    this.devCommandPty = options.devCommandPty;
+    this.options = {
+      ...options,
+      workdir: options.workdir ?? "/repo",
+      port: options.port ?? 3000,
+      installCommand: options.installCommand ?? "npm install",
+      devCommand: options.devCommand ?? "npm run dev",
+      runtime: options.runtime ?? new VmNodeJs({}),
+    };
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec | Promise<VmSpec> {
-    if (this.templateRepo) {
+    if (this.options.templateRepo) {
       const composed = this.composeSpecs(
         spec,
-        createSnapshotSpec(
-          this.templateRepo,
-          this.workdir,
-          this.devCommand,
-          this.devCommandPty,
-        ),
+        createSnapshotSpec(this.options),
       );
       return composed;
     }
@@ -307,13 +316,13 @@ export class VmDevServer extends VmWith<VmDevServerInstance> {
   }
 
   override configureSpec(spec: VmSpec): VmSpec | Promise<VmSpec> {
-    if (this.repo) {
+    if (this.options.repo) {
       const newSpec = new VmSpec({
         git: {
           repos: [
             {
-              repo: this.repo,
-              path: this.workdir,
+              repo: this.options.repo,
+              path: this.options.workdir,
             },
           ],
         },

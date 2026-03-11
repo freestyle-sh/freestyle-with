@@ -13,4 +13,5 @@ packages:
   - "with-dev-server"
   - "with-ttyd"
   - "with-pty"
+  - "with-claude-code"
   - "types/*"

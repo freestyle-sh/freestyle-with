@@ -1,12 +1,16 @@
 {
-  "name": "@freestyle-sh/with-dev-server",
-  "version": "0.1.7",
+  "name": "@freestyle-sh/with-claude-code",
+  "version": "0.0.1",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.28",
-    "@freestyle-sh/with-nodejs": "workspace:^",
-    "@freestyle-sh/with-pty": "workspace:^"
+    "@anthropic-ai/claude-agent-sdk": "^0.2.72",
+    "freestyle-sandboxes": "^0.1.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "pkgroll": "^2.11.2",
+    "typescript": "^5.8.3"
   },
   "type": "module",
   "main": "./dist/index.js",
