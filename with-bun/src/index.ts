@@ -13,8 +13,8 @@ import type {
   InstallResult,
 } from "@freestyle-sh/with-type-js";
 
-type BunJsOptions = { version?: string; workdir?: string };
-type BunJsResolvedOptions = { version?: string; workdir?: string };
+type BunJsOptions = { version?: string; workdir?: string, deleteAfterSuccess?: boolean };
+type BunJsResolvedOptions = { version?: string; workdir?: string, deleteAfterSuccess: boolean };
 
 export class VmBun
   extends VmWith<VmBunInstance>
@@ -27,6 +27,7 @@ export class VmBun
     this.options = {
       version: options?.version,
       workdir: options?.workdir,
+      deleteAfterSuccess: options?.deleteAfterSuccess ?? true,
     };
   }
 
@@ -62,7 +63,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
             {
               name: "install-bun",
               mode: "oneshot",
-              deleteAfterSuccess: true,
+              deleteAfterSuccess: this.options.deleteAfterSuccess,
               env: {
                 HOME: "/root",
               },
