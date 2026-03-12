@@ -11,6 +11,7 @@ export type DevServerOptions = {
   devCommand?: string;
   runtime?: VmWith<VmWithInstance> & { installServiceName(): string };
   devCommandPty?: VmPtySessionLike;
+  env?: Record<string, string>;
 };
 
 type DevServerResolvedOptions = {
@@ -22,6 +23,7 @@ type DevServerResolvedOptions = {
   devCommand: string;
   runtime: VmWith<VmWithInstance> & { installServiceName(): string };
   devCommandPty?: VmPtySessionLike;
+  env?: Record<string, string>;
 };
 
 export const createSnapshotSpec = (
@@ -47,11 +49,12 @@ export const createSnapshotSpec = (
       services: [
         {
           name: "dev-server-install",
-          bash: options.installCommand,
+          bash: `set -e\n${options.installCommand}`,
           mode: "oneshot",
           workdir: options.workdir,
           after: [options.runtime.installServiceName()],
           requires: [options.runtime.installServiceName()],
+          env: options.env,
         },
         {
           name: "dev-server",
@@ -59,6 +62,7 @@ export const createSnapshotSpec = (
           after: ["dev-server-install"],
           requires: ["dev-server-install"],
           workdir: options.workdir,
+          env: options.env,
         },
         {
           name: "dev-server-health",
