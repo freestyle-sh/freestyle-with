@@ -2,3 +2,5 @@ node_modules
 .env
 dist
 local-test
+# Riptide artifacts (cloud-synced)
+.humanlayer/tasks/
