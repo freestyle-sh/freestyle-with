@@ -82,6 +82,25 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  with-deno:
+    dependencies:
+      '@freestyle-sh/with-type-js':
+        specifier: workspace:*
+        version: link:../types/with-type-js
+      freestyle-sandboxes:
+        specifier: ^0.1.14
+        version: 0.1.28
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.7
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   with-dev-server:
     dependencies:
       '@freestyle-sh/with-nodejs':
