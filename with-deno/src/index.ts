@@ -119,7 +119,7 @@ class VmDenoInstance
           .join(" ")} `
       : "";
     const cdPrefix = workdir ? `cd ${shellEscape(workdir)} && ` : "";
-    const command = `${cdPrefix}${envPrefix}/opt/deno/bin/deno eval -A "${code.replace(/"/g, '\\"')}"${
+    const command = `${cdPrefix}${envPrefix}/opt/deno/bin/deno eval "${code.replace(/"/g, '\\"')}"${
       argvArgs ? ` -- ${argvArgs}` : ""
     }`;
 
@@ -164,7 +164,7 @@ class VmDenoInstance
 
     if (options?.global) {
       const deps = options.deps.map(prefixDep);
-      command = `/opt/deno/bin/deno install --global -A ${deps.join(" ")}`;
+      command = `/opt/deno/bin/deno install --global --allow-all ${deps.join(" ")}`;
     } else {
       const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
 
