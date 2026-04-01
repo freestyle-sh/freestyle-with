@@ -151,5 +151,41 @@ class VmDenoInstance
     };
   }
 
-  // install() implementation added in Phase 3
+  async install(options?: InstallOptions): Promise<InstallResult> {
+    let command: string;
+
+    // Helper to add npm: prefix to bare package names
+    const prefixDep = (dep: string): string => {
+      if (dep.startsWith("npm:") || dep.startsWith("jsr:")) {
+        return dep;
+      }
+      return `npm:${dep}`;
+    };
+
+    if (options?.global) {
+      const deps = options.deps.map(prefixDep);
+      command = `/opt/deno/bin/deno install --global -A ${deps.join(" ")}`;
+    } else {
+      const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
+
+      if (!options?.deps) {
+        // Install from deno.json
+        command = `${cdPrefix}/opt/deno/bin/deno install`;
+      } else {
+        const deps = Array.isArray(options.deps)
+          ? options.deps.map(prefixDep)
+          : Object.entries(options.deps).map(([pkg, ver]) => `${prefixDep(pkg)}@${ver}`);
+        const devFlag = options.dev ? " --dev" : "";
+        command = `${cdPrefix}/opt/deno/bin/deno add${devFlag} ${deps.join(" ")}`;
+      }
+    }
+
+    const result = await this.vm.exec({ command });
+
+    return {
+      success: result.statusCode === 0,
+      stdout: result.stdout ?? undefined,
+      stderr: result.stderr ?? undefined,
+    };
+  }
 }
