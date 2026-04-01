@@ -15,4 +15,5 @@ packages:
   - "with-pty"
   - "with-claude-code"
   - "with-vscode"
+  - "with-deno"
   - "types/*"
