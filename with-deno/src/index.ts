@@ -1,4 +1,5 @@
 import {
+  VmBaseImage,
   VmSpec,
   VmWith,
   VmWithInstance,
@@ -29,6 +30,7 @@ export class VmDeno
   implements VmJavaScriptRuntime<VmJavaScriptRuntimeInstance>
 {
   options: DenoResolvedOptions;
+  workspaces: DenoWorkspace[] = [];
 
   constructor(options?: DenoOptions) {
     super();
@@ -39,49 +41,37 @@ export class VmDeno
     };
   }
 
-  override configureSnapshotSpec(spec: VmSpec): VmSpec {
-    const versionArg = this.options.version
-      ? ` v${this.options.version}`
-      : "";
+  override configureBaseImage(
+    image: VmBaseImage,
+  ): VmBaseImage | Promise<VmBaseImage> {
+    const versionArg = this.options.version ? ` v${this.options.version}` : "";
 
-    const installScript = `#!/bin/bash
-set -e
-export DENO_INSTALL="/opt/deno"
-curl -fsSL https://deno.land/install.sh | sh -s -- --yes${versionArg}
-$DENO_INSTALL/bin/deno --version
-`;
+    return image.runCommands(`
+apt-get update
+apt-get install -y --no-install-recommends ca-certificates curl unzip
+rm -rf /var/lib/apt/lists/*
+curl -fsSL https://deno.land/install.sh | DENO_INSTALL="/opt/deno" sh -s -- --yes${versionArg}
+/opt/deno/bin/deno --version`);
+  }
 
-    const denoInit = `export DENO_INSTALL="/opt/deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
-`;
+  override configureSpec(spec: VmSpec): VmSpec {
+    spec.systemdService({
+      name: "install-deno",
+      mode: "oneshot",
+      deleteAfterSuccess: this.options.deleteAfterSuccess,
+      env: {
+        HOME: "/root",
+      },
+      exec: ["/opt/deno/bin/deno --version"],
+      timeoutSec: 30,
+    });
+    return spec;
+  }
 
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        additionalFiles: {
-          "/opt/install-deno.sh": {
-            content: installScript,
-          },
-          "/etc/profile.d/deno.sh": {
-            content: denoInit,
-          },
-        },
-        systemd: {
-          services: [
-            {
-              name: "install-deno",
-              mode: "oneshot",
-              deleteAfterSuccess: this.options.deleteAfterSuccess,
-              env: {
-                HOME: "/root",
-              },
-              exec: ["bash /opt/install-deno.sh"],
-              timeoutSec: 300,
-            },
-          ],
-        },
-      }),
-    );
+  workspace(options: { path: string; install?: boolean }): DenoWorkspace {
+    const workspace = new DenoWorkspace(options);
+    this.workspaces.push(workspace);
+    return workspace;
   }
 
   createInstance(): VmDenoInstance {
@@ -90,6 +80,154 @@ export PATH="$DENO_INSTALL/bin:$PATH"
 
   installServiceName(): string {
     return "install-deno.service";
+  }
+}
+
+export class DenoWorkspace extends VmWith<DenoWorkspaceInstance> {
+  options: { path: string; install?: boolean };
+  env?: Record<string, string>;
+
+  constructor(
+    options: { path: string; install?: boolean },
+    env?: Record<string, string>,
+  ) {
+    super();
+    this.options = options;
+    this.env = env;
+  }
+
+  task(
+    name: string,
+    options?: {
+      env?: Record<string, string>;
+      serviceName?: string;
+    },
+  ): DenoWorkspaceTask {
+    return new DenoWorkspaceTask(
+      name,
+      this,
+      {
+        ...this.env,
+        ...options?.env,
+      },
+      options?.serviceName,
+    );
+  }
+
+  getInstallServiceName(): string {
+    return `deno-install-${this.options.path.replace(/\//g, "-")}`;
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    if (this.options.install) {
+      spec.systemdService({
+        name: this.getInstallServiceName(),
+        mode: "oneshot",
+        bash: "/opt/deno/bin/deno install",
+        workdir: this.options.path,
+        env: {
+          HOME: "/root",
+          DENO_DIR: "/root/.cache/deno",
+          ...this.env,
+        },
+        user: "root",
+      });
+    }
+    return spec;
+  }
+
+  override createInstance(): DenoWorkspaceInstance {
+    return new DenoWorkspaceInstance();
+  }
+}
+
+export class DenoWorkspaceInstance extends VmWithInstance {}
+
+export class DenoWorkspaceTask extends VmWith<DenoWorkspaceTaskInstance> {
+  name: string;
+  workspace: DenoWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: DenoWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `deno-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    spec.systemdService({
+      name: this.getServiceName(),
+      bash: `/opt/deno/bin/deno task ${this.name}`,
+      workdir: this.workspace.options.path,
+      after: [this.workspace.getInstallServiceName()],
+      requires: [this.workspace.getInstallServiceName()],
+      env: {
+        HOME: "/root",
+        DENO_DIR: "/root/.cache/deno",
+        ...this.env,
+      },
+      user: "root",
+    });
+    return spec;
+  }
+
+  override createInstance(): DenoWorkspaceTaskInstance {
+    return new DenoWorkspaceTaskInstance(
+      this.name,
+      this.workspace,
+      this.env,
+      this.serviceName,
+    );
+  }
+}
+
+export class DenoWorkspaceTaskInstance extends VmWithInstance {
+  name: string;
+  workspace: DenoWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: DenoWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `deno-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  logs() {
+    return this.vm
+      .exec({
+        command: `journalctl -u ${this.getServiceName()} --no-pager -n 30`,
+      })
+      .then((result) => result.stdout?.trim().split("\n"));
   }
 }
 
@@ -107,7 +245,12 @@ class VmDenoInstance
   async runCode<Result extends JSONValue = any>(
     args:
       | string
-      | { code: string; argv?: string[]; env?: Record<string, string>; workdir?: string },
+      | {
+          code: string;
+          argv?: string[];
+          env?: Record<string, string>;
+          workdir?: string;
+        },
   ): Promise<RunCodeResponse<Result>> {
     const options = typeof args === "string" ? { code: args } : args;
     const { code, argv, env, workdir } = options;
@@ -174,7 +317,9 @@ class VmDenoInstance
       } else {
         const deps = Array.isArray(options.deps)
           ? options.deps.map(prefixDep)
-          : Object.entries(options.deps).map(([pkg, ver]) => `${prefixDep(pkg)}@${ver}`);
+          : Object.entries(options.deps).map(
+              ([pkg, ver]) => `${prefixDep(pkg)}@${ver}`,
+            );
         const devFlag = options.dev ? " --dev" : "";
         command = `${cdPrefix}/opt/deno/bin/deno add${devFlag} ${deps.join(" ")}`;
       }

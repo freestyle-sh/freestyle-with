@@ -88,8 +88,8 @@ importers:
         specifier: workspace:*
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.14
-        version: 0.1.28
+        specifier: ^0.1.40
+        version: 0.1.40
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -1083,6 +1083,10 @@ packages:
 
   freestyle-sandboxes@0.1.28:
     resolution: {integrity: sha512-4qYRgYXcapCk8FZPi3KZlj5H/nmRY0EFVooT/lVZ5j1McOyyxL2RcHSoGe5EO+ggSTtPi8zqv8CWdnfTiCYpHQ==}
+    hasBin: true
+
+  freestyle-sandboxes@0.1.40:
+    resolution: {integrity: sha512-n9azii2PV0C/ajaFNgn5WJa217ti9DGvGjThulqMIWB2p9higjB1Z4WvKv+Qq+ZfpYeh8dH5sSL1LwqX7vE6fQ==}
     hasBin: true
 
   fsevents@2.3.3:
@@ -2147,6 +2151,12 @@ snapshots:
   flatted@3.3.3: {}
 
   freestyle-sandboxes@0.1.28:
+    optionalDependencies:
+      dotenv: 17.3.1
+      glob: 13.0.6
+      yargs: 18.0.0
+
+  freestyle-sandboxes@0.1.40:
     optionalDependencies:
       dotenv: 17.3.1
       glob: 13.0.6
