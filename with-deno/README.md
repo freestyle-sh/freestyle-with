@@ -117,6 +117,81 @@ const res = await vm.deno.runCode({
 });
 ```
 
+## Workspaces and Tasks
+
+Use the Deno builder to attach a workspace and run a Deno task as a managed systemd service.
+
+```typescript
+import { Freestyle, VmSpec } from "freestyle-sandboxes";
+import { VmDeno } from "@freestyle-sh/with-deno";
+
+const freestyle = new Freestyle();
+
+const deno = new VmDeno();
+const workspace = deno.workspace({ path: "/root/app", install: true });
+const appTask = workspace.task("start", {
+  env: {
+    HOST: "0.0.0.0",
+  },
+});
+
+const spec = new VmSpec()
+  .with("deno", deno)
+  .repo("https://github.com/deco-sites/storefront", "/root/app")
+  .with("workspace", workspace)
+  .with("app", appTask)
+  .snapshot()
+  .waitFor("curl http://localhost:8000")
+  .snapshot();
+
+const { repoId } = await freestyle.git.repos.create({
+  source: {
+    url: "https://github.com/deco-sites/storefront",
+  },
+});
+
+const domain = `${crypto.randomUUID()}.style.dev`;
+
+const { vm } = await freestyle.vms.create({
+  spec,
+  domains: [{ domain, vmPort: 8000 }],
+  git: {
+    repos: [{ repo: repoId, path: "/root/app" }],
+  },
+});
+
+// Task instance comes from .with("app", appTask)
+const recentLogs = await vm.app.logs();
+console.log(recentLogs);
+```
+
+### Workspace API
+
+```typescript
+const workspace = deno.workspace({
+  path: "/root/app",
+  install: true,
+});
+```
+
+- `path`: Working directory for `deno install` and task execution.
+- `install`: When true, runs `deno install` in the workspace during VM startup.
+
+### Task API
+
+```typescript
+const task = workspace.task("start", {
+  env: { HOST: "0.0.0.0" },
+  serviceName: "my-deno-app",
+});
+```
+
+- `name`: Task name from `deno.json`.
+- `env`: Optional environment variables for the task service.
+- `serviceName`: Optional explicit systemd service name.
+
+When added to the spec with `.with("app", task)`, you can access task logs with `vm.app.logs()`.
+
 ## Documentation
 
 - [Freestyle Documentation](https://docs.freestyle.sh)
