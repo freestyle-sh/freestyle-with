@@ -4,7 +4,7 @@ import { VmDeno } from "../src/index.ts";
 
 const freestyle = new Freestyle({
   fetch: (url, body) => {
-    console.log(JSON.stringify(body, null, 2));
+    console.log(JSON.stringify(JSON.parse(body.body), null, 2));
     return fetch(url, body);
   },
 });
@@ -23,37 +23,36 @@ const spec = new VmSpec()
   .with("workspace", workspace)
   .with("app", task)
   .snapshot()
-  .waitFor("curl http://localhost:8000", {
-    timeoutSec: 240,
-    name: "deno-app-ready",
-  })
+  .waitFor("curl http://localhost:8000")
   .snapshot();
 
-// const domain = `${crypto.randomUUID()}.style.dev`;
-// const { repoId } = await freestyle.git.repos.create({
-//   source: {
-//     url: "https://github.com/deco-sites/storefront",
-//   },
-// });
+const domain = `${crypto.randomUUID()}.style.dev`;
+const { repoId } = await freestyle.git.repos.create({
+  source: {
+    url: "https://github.com/deco-sites/storefront",
+  },
+});
 
 // cache doesn't work
 const { vmId, vm } = await freestyle.vms.create({
   spec: spec,
-  //   domains: [
-  //     {
-  //       domain: domain,
-  //       vmPort: 8000,
-  //     },
-  //   ],
-  //   git: {
-  //     repos: [
-  //       {
-  //         repo: repoId,
-  //         path: "/root/app",
-  //       },
-  //     ],
-  //   },
+  domains: [
+    {
+      domain: domain,
+      vmPort: 8000,
+    },
+  ],
+  git: {
+    repos: [
+      {
+        repo: repoId,
+        path: "/root/app",
+      },
+    ],
+  },
 });
 
+await vm.exec("curl http://localhost:8000").then(console.log);
+
 console.log("VM ID:", vmId);
-// console.log("Domain:", domain);
+console.log("Domain:", domain);

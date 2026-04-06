@@ -16,13 +16,11 @@ import type {
 type DenoOptions = {
   version?: string;
   workdir?: string;
-  deleteAfterSuccess?: boolean;
 };
 
 type DenoResolvedOptions = {
   version?: string;
   workdir?: string;
-  deleteAfterSuccess: boolean;
 };
 
 export class VmDeno
@@ -37,7 +35,6 @@ export class VmDeno
     this.options = {
       version: options?.version,
       workdir: options?.workdir,
-      deleteAfterSuccess: options?.deleteAfterSuccess ?? true,
     };
   }
 
@@ -58,7 +55,6 @@ curl -fsSL https://deno.land/install.sh | DENO_INSTALL="/opt/deno" sh -s -- --ye
     spec.systemdService({
       name: "install-deno",
       mode: "oneshot",
-      deleteAfterSuccess: this.options.deleteAfterSuccess,
       env: {
         HOME: "/root",
       },
