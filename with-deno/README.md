@@ -14,11 +14,8 @@ npm install @freestyle-sh/with-deno freestyle-sandboxes
 import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmDeno } from "@freestyle-sh/with-deno";
 
-const spec = new VmSpec({
-  with: {
-    deno: new VmDeno(),
-  },
-});
+const deno = new VmDeno();
+const spec = new VmSpec().with("deno", deno);
 
 const { vm } = await freestyle.vms.create({ spec });
 
@@ -101,6 +98,10 @@ type InstallResult = {
 Deno has native support for [JSR](https://jsr.io) (JavaScript Registry), which hosts TypeScript-first packages including the Deno standard library.
 
 ```typescript
+const deno = new VmDeno();
+const spec = new VmSpec().with("deno", deno);
+const { vm } = await freestyle.vms.create({ spec });
+
 // Install @std/path from JSR
 await vm.deno.install({ deps: ["jsr:@std/path"] });
 

@@ -2,11 +2,8 @@ import "dotenv/config";
 import { freestyle, VmSpec } from "freestyle-sandboxes";
 import { VmDeno } from "../src/index.ts";
 
-const spec = new VmSpec({
-  with: {
-    deno: new VmDeno(),
-  },
-});
+const deno = new VmDeno();
+const spec = new VmSpec().with("deno", deno);
 
 const { vm } = await freestyle.vms.create({ spec });
 
