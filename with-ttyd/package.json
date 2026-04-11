@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-ttyd",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Web terminal for freestyle sandboxes",
   "type": "module",
   "main": "./dist/index.js",
