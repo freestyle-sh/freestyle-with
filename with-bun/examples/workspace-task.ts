@@ -36,6 +36,8 @@ const { vm } = await freestyle.vms.create({
   git: {
     repos: [{ repo: repoId, path: "/root/app" }],
   },
+  logger: console.log
 });
 
+console.log(`Your app is running at http://${domain}`);
 console.log(await vm.app.logs());

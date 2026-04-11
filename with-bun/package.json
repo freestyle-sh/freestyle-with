@@ -4,8 +4,9 @@
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.41",
-    "@freestyle-sh/with-type-js": "workspace:^"
+    "@freestyle-sh/with-type-js": "workspace:^",
+    "@types/node": "^25.6.0",
+    "freestyle-sandboxes": "^0.1.41"
   },
   "type": "module",
   "main": "./dist/index.js",
