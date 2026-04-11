@@ -91,6 +91,83 @@ type InstallResult = {
 };
 ```
 
+## Workspaces and Tasks
+
+Use the Bun builder to attach a workspace and run a package script as a managed systemd service.
+
+```typescript
+import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { VmBun } from "@freestyle-sh/with-bun";
+
+const SOURCE_REPO = "https://github.com/freestyle-sh/freestyle-next";
+
+const bun = new VmBun();
+const workspace = bun.workspace({ path: "/root/app", install: true });
+const appTask = workspace.task("dev", {
+  env: {
+    HOST: "0.0.0.0",
+    PORT: "3000",
+  },
+});
+
+const spec = new VmSpec()
+  .with("bun", bun)
+  .repo(SOURCE_REPO, "/root/app")
+  .with("workspace", workspace)
+  .with("app", appTask)
+  .snapshot()
+  .waitFor("curl http://localhost:3000")
+  .snapshot();
+
+const { repoId } = await freestyle.git.repos.create({
+  source: {
+    url: SOURCE_REPO,
+  },
+});
+
+const domain = `${repoId}.style.dev`;
+
+const { vm } = await freestyle.vms.create({
+  spec,
+  domains: [{ domain, vmPort: 3000 }],
+  git: {
+    repos: [{ repo: repoId, path: "/root/app" }],
+  },
+});
+
+console.log(await vm.app.logs());
+```
+
+### Workspace API
+
+```typescript
+const workspace = bun.workspace({
+  path: "/root/app",
+  install: true,
+});
+```
+
+- `path`: Working directory for `bun install` and task execution.
+- `install`: When true, runs `bun install` in the workspace during VM startup.
+
+### Task API
+
+```typescript
+const task = workspace.task("dev", {
+  env: {
+    HOST: "0.0.0.0",
+    PORT: "3000",
+  },
+  serviceName: "my-bun-app",
+});
+```
+
+- `name`: Script name from `package.json`.
+- `env`: Optional environment variables for the task service.
+- `serviceName`: Optional explicit systemd service name.
+
+When added to the spec with `.with("app", task)`, you can access task logs with `vm.app.logs()`.
+
 ## Documentation
 
 - [Freestyle Documentation](https://docs.freestyle.sh)

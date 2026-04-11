@@ -17,6 +17,7 @@ export class VmNodeJs
   implements VmJavaScriptRuntime<VmJavaScriptRuntimeInstance>
 {
   options: NodeJsResolvedOptions;
+  workspaces: NodeJsWorkspace[] = [];
 
   constructor(options?: NodeJsOptions) {
     super();
@@ -75,8 +76,185 @@ npm -v
     return new NodeJsRuntimeInstance(this);
   }
 
+  workspace(options: { path: string; install?: boolean }): NodeJsWorkspace {
+    const workspace = new NodeJsWorkspace(options);
+    this.workspaces.push(workspace);
+    return workspace;
+  }
+
   installServiceName(): string {
     return `install-nodejs.service`;
+  }
+}
+
+export class NodeJsWorkspace extends VmWith<NodeJsWorkspaceInstance> {
+  options: { path: string; install?: boolean };
+  env?: Record<string, string>;
+
+  constructor(
+    options: { path: string; install?: boolean },
+    env?: Record<string, string>,
+  ) {
+    super();
+    this.options = options;
+    this.env = env;
+  }
+
+  task(
+    name: string,
+    options?: {
+      env?: Record<string, string>;
+      serviceName?: string;
+    },
+  ): NodeJsWorkspaceTask {
+    return new NodeJsWorkspaceTask(
+      name,
+      this,
+      {
+        ...this.env,
+        ...options?.env,
+      },
+      options?.serviceName,
+    );
+  }
+
+  getInstallServiceName(): string {
+    return `nodejs-install-${this.options.path.replace(/\//g, "-")}`;
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    if (this.options.install) {
+      return this.composeSpecs(
+        spec,
+        new VmSpec({
+          systemd: {
+            services: [
+              {
+                name: this.getInstallServiceName(),
+                mode: "oneshot",
+                exec: ['bash -lc "source /opt/nvm/nvm.sh && npm install"'],
+                workdir: this.options.path,
+                env: {
+                  HOME: "/root",
+                  NVM_DIR: "/opt/nvm",
+                  ...this.env,
+                },
+                user: "root",
+              },
+            ],
+          },
+        }),
+      );
+    }
+    return spec;
+  }
+
+  override createInstance(): NodeJsWorkspaceInstance {
+    return new NodeJsWorkspaceInstance();
+  }
+}
+
+export class NodeJsWorkspaceInstance extends VmWithInstance {}
+
+export class NodeJsWorkspaceTask extends VmWith<NodeJsWorkspaceTaskInstance> {
+  name: string;
+  workspace: NodeJsWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: NodeJsWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `nodejs-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
+        systemd: {
+          services: [
+            {
+              name: this.getServiceName(),
+              exec: [
+                `bash -lc "source /opt/nvm/nvm.sh && npm run ${this.name}"`,
+              ],
+              workdir: this.workspace.options.path,
+              after: this.workspace.options.install
+                ? [this.workspace.getInstallServiceName()]
+                : undefined,
+              requires: this.workspace.options.install
+                ? [this.workspace.getInstallServiceName()]
+                : undefined,
+              env: {
+                HOME: "/root",
+                NVM_DIR: "/opt/nvm",
+                ...this.env,
+              },
+              user: "root",
+            },
+          ],
+        },
+      }),
+    );
+  }
+
+  override createInstance(): NodeJsWorkspaceTaskInstance {
+    return new NodeJsWorkspaceTaskInstance(
+      this.name,
+      this.workspace,
+      this.env,
+      this.serviceName,
+    );
+  }
+}
+
+export class NodeJsWorkspaceTaskInstance extends VmWithInstance {
+  name: string;
+  workspace: NodeJsWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: NodeJsWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `nodejs-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  logs() {
+    return this.vm
+      .exec({
+        command: `journalctl -u ${this.getServiceName()} --no-pager -n 30`,
+      })
+      .then((result) => result.stdout?.trim().split("\n"));
   }
 }
 

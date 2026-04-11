@@ -60,8 +60,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.28
+        specifier: ^0.1.41
+        version: 0.1.41
 
   with-claude-code:
     dependencies:
@@ -88,8 +88,8 @@ importers:
         specifier: workspace:*
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.41
-        version: 0.1.41
+        specifier: ^0.1.43
+        version: 0.1.43
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -128,8 +128,8 @@ importers:
         specifier: workspace:^
         version: link:../types/with-type-js
       freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.28
+        specifier: ^0.1.41
+        version: 0.1.41
 
   with-opencode:
     dependencies:
@@ -1087,6 +1087,10 @@ packages:
 
   freestyle-sandboxes@0.1.41:
     resolution: {integrity: sha512-lpkkRk73jy0oWgIhzppfOUSDaNW+OG0KZ0RLcDrdqMNRJNPr/OiOAG8aKdXkfcxqeKzXtTIumy+D22xR2HHhCg==}
+    hasBin: true
+
+  freestyle-sandboxes@0.1.43:
+    resolution: {integrity: sha512-00FGs+7DPJsFwJ0mOIpJlhS2Fb8cwls0GBSo48KoqDzIfmXx4njKcvvxWzM8GNxcG++U+hQqsqbfqP2llw1Tug==}
     hasBin: true
 
   fsevents@2.3.3:
@@ -2157,6 +2161,12 @@ snapshots:
       yargs: 18.0.0
 
   freestyle-sandboxes@0.1.41:
+    optionalDependencies:
+      dotenv: 17.3.1
+      glob: 13.0.6
+      yargs: 18.0.0
+
+  freestyle-sandboxes@0.1.43:
     optionalDependencies:
       dotenv: 17.3.1
       glob: 13.0.6

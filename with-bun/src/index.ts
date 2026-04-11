@@ -21,6 +21,7 @@ export class VmBun
   implements VmJavaScriptRuntime<VmJavaScriptRuntimeInstance>
 {
   options: BunJsResolvedOptions;
+  workspaces: BunWorkspace[] = [];
 
   constructor(options?: BunJsOptions) {
     super();
@@ -80,8 +81,185 @@ export PATH="$BUN_INSTALL/bin:$PATH"
     return new VmBunInstance(this);
   }
 
+  workspace(options: { path: string; install?: boolean }): BunWorkspace {
+    const workspace = new BunWorkspace(options);
+    this.workspaces.push(workspace);
+    return workspace;
+  }
+
   installServiceName(): string {
     return "install-bun.service";
+  }
+}
+
+export class BunWorkspace extends VmWith<BunWorkspaceInstance> {
+  options: { path: string; install?: boolean };
+  env?: Record<string, string>;
+
+  constructor(
+    options: { path: string; install?: boolean },
+    env?: Record<string, string>,
+  ) {
+    super();
+    this.options = options;
+    this.env = env;
+  }
+
+  task(
+    name: string,
+    options?: {
+      env?: Record<string, string>;
+      serviceName?: string;
+    },
+  ): BunWorkspaceTask {
+    return new BunWorkspaceTask(
+      name,
+      this,
+      {
+        ...this.env,
+        ...options?.env,
+      },
+      options?.serviceName,
+    );
+  }
+
+  getInstallServiceName(): string {
+    return `bun-install-${this.options.path.replace(/\//g, "-")}`;
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    if (this.options.install) {
+      return this.composeSpecs(
+        spec,
+        new VmSpec({
+          systemd: {
+            services: [
+              {
+                name: this.getInstallServiceName(),
+                mode: "oneshot",
+                exec: ["/opt/bun/bin/bun install"],
+                workdir: this.options.path,
+                env: {
+                  HOME: "/root",
+                  BUN_INSTALL: "/opt/bun",
+                  PATH: "/opt/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                  ...this.env,
+                },
+                user: "root",
+              },
+            ],
+          },
+        }),
+      );
+    }
+    return spec;
+  }
+
+  override createInstance(): BunWorkspaceInstance {
+    return new BunWorkspaceInstance();
+  }
+}
+
+export class BunWorkspaceInstance extends VmWithInstance {}
+
+export class BunWorkspaceTask extends VmWith<BunWorkspaceTaskInstance> {
+  name: string;
+  workspace: BunWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: BunWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `bun-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  override configureSpec(spec: VmSpec): VmSpec {
+    return this.composeSpecs(
+      spec,
+      new VmSpec({
+        systemd: {
+          services: [
+            {
+              name: this.getServiceName(),
+              exec: [`/opt/bun/bin/bun run ${this.name}`],
+              workdir: this.workspace.options.path,
+              after: this.workspace.options.install
+                ? [this.workspace.getInstallServiceName()]
+                : undefined,
+              requires: this.workspace.options.install
+                ? [this.workspace.getInstallServiceName()]
+                : undefined,
+              env: {
+                HOME: "/root",
+                BUN_INSTALL: "/opt/bun",
+                PATH: "/opt/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                ...this.env,
+              },
+              user: "root",
+            },
+          ],
+        },
+      }),
+    );
+  }
+
+  override createInstance(): BunWorkspaceTaskInstance {
+    return new BunWorkspaceTaskInstance(
+      this.name,
+      this.workspace,
+      this.env,
+      this.serviceName,
+    );
+  }
+}
+
+export class BunWorkspaceTaskInstance extends VmWithInstance {
+  name: string;
+  workspace: BunWorkspace;
+  env?: Record<string, string>;
+  serviceName?: string;
+
+  constructor(
+    name: string,
+    workspace: BunWorkspace,
+    env?: Record<string, string>,
+    serviceName?: string,
+  ) {
+    super();
+    this.name = name;
+    this.workspace = workspace;
+    this.env = env;
+    this.serviceName = serviceName;
+  }
+
+  getServiceName(): string {
+    return (
+      this.serviceName ??
+      `bun-workspace-${this.workspace.options.path.replace(/\//g, "-")}-task-${this.name}`
+    );
+  }
+
+  logs() {
+    return this.vm
+      .exec({
+        command: `journalctl -u ${this.getServiceName()} --no-pager -n 30`,
+      })
+      .then((result) => result.stdout?.trim().split("\n"));
   }
 }
 
