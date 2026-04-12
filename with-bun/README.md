@@ -5,13 +5,13 @@ Bun runtime for [Freestyle](https://freestyle.sh) VMs.
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-bun freestyle-sandboxes
+npm install @freestyle-sh/with-bun freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmBun } from "@freestyle-sh/with-bun";
 
 const { vm } = await freestyle.vms.create({
@@ -96,7 +96,7 @@ type InstallResult = {
 Use the Bun builder to attach a workspace and run a package script as a managed systemd service.
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmBun } from "@freestyle-sh/with-bun";
 
 const SOURCE_REPO = "https://github.com/freestyle-sh/freestyle-next";

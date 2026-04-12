@@ -59,9 +59,9 @@ importers:
       '@freestyle-sh/with-type-js':
         specifier: workspace:*
         version: link:../types/with-type-js
-      freestyle-sandboxes:
-        specifier: ^0.1.43
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -1093,6 +1093,11 @@ packages:
 
   freestyle-sandboxes@0.1.43:
     resolution: {integrity: sha512-00FGs+7DPJsFwJ0mOIpJlhS2Fb8cwls0GBSo48KoqDzIfmXx4njKcvvxWzM8GNxcG++U+hQqsqbfqP2llw1Tug==}
+    deprecated: This package has been deprecated. Please use freestyle instead.
+    hasBin: true
+
+  freestyle@0.1.46:
+    resolution: {integrity: sha512-2Cw+M0zD3LzFR9HXx7Mu5n4q6POjpDKrCNOx+vQi0gio31Hs8BtxE8+gG27K6vQTQS6Pz7MEqINgrbA/g9IxMw==}
     hasBin: true
 
   fsevents@2.3.3:
@@ -2157,6 +2162,12 @@ snapshots:
   flatted@3.3.3: {}
 
   freestyle-sandboxes@0.1.43:
+    optionalDependencies:
+      dotenv: 17.3.1
+      glob: 13.0.6
+      yargs: 18.0.0
+
+  freestyle@0.1.46:
     optionalDependencies:
       dotenv: 17.3.1
       glob: 13.0.6

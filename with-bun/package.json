@@ -4,8 +4,8 @@
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.43",
-    "@freestyle-sh/with-type-js": "workspace:*"
+    "@freestyle-sh/with-type-js": "workspace:*",
+    "freestyle": "^0.1.46"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

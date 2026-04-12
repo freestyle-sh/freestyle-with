@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { readFileSync } from "node:fs";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmBun } from "../src/index.ts";
 
 const SSE_SERVER_CODE = readFileSync(new URL("./sse-server-content.ts", import.meta.url), "utf-8");

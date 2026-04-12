@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmBun } from "../src/index.ts";
 
 const TEMPLATE = "elysia"; // any bun create template (elysia, hono, etc.)
@@ -33,4 +33,7 @@ const { vm } = await freestyle.vms.create({
 });
 
 console.log(`Your app is running at https://${domain}`);
+
+const response = await fetch(`https://${domain}`);
+console.log(await response.text());
 console.log(await vm.app.logs());
