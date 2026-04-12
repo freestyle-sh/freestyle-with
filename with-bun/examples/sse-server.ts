@@ -7,30 +7,20 @@ const SSE_SERVER_CODE = readFileSync(new URL("./sse-server-content.ts", import.m
 
 const bun = new VmBun();
 
-const spec = new VmSpec({
-  with: {
-    bun,
-  },
-  additionalFiles: {
-    "/opt/sse-server.ts": {
-      content: SSE_SERVER_CODE,
+const spec = new VmSpec()
+  .with("bun", bun)
+  .additionalFiles({
+    "/opt/sse-server.ts": { content: SSE_SERVER_CODE },
+  })
+  .systemdService({
+    name: "sse-server",
+    after: [bun.installServiceName()],
+    bash: "/opt/bun/bin/bun run /opt/sse-server.ts",
+    env: {
+      BUN_INSTALL: "/opt/bun",
     },
-  },
-  systemd: {
-    services: [
-      {
-        name: "sse-server",
-        after: [bun.installServiceName()],
-        exec: ["/opt/bun/bin/bun run /opt/sse-server.ts"],
-        env: {
-          BUN_INSTALL: "/opt/bun",
-          PATH: "/opt/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-        },
-        mode: "service"
-      },
-    ],
-  },
-});
+    mode: "service",
+  });
 
 console.log("Creating VM with Bun runtime and SSE server...");
 const { vm, vmId } = await freestyle.vms.create({ spec });

@@ -1,6 +1,6 @@
 import {
+  VmBaseImage,
   VmSpec,
-  type CreateVmOptions,
   VmWith,
   VmWithInstance,
 } from "freestyle-sandboxes";
@@ -13,8 +13,15 @@ import type {
   InstallResult,
 } from "@freestyle-sh/with-type-js";
 
-type BunJsOptions = { version?: string; workdir?: string, deleteAfterSuccess?: boolean };
-type BunJsResolvedOptions = { version?: string; workdir?: string, deleteAfterSuccess: boolean };
+type BunJsOptions = {
+  version?: string;
+  workdir?: string;
+};
+
+type BunJsResolvedOptions = {
+  version?: string;
+  workdir?: string;
+};
 
 export class VmBun
   extends VmWith<VmBunInstance>
@@ -28,63 +35,46 @@ export class VmBun
     this.options = {
       version: options?.version,
       workdir: options?.workdir,
-      deleteAfterSuccess: options?.deleteAfterSuccess ?? true,
     };
   }
 
-  override configureSnapshotSpec(spec: VmSpec): VmSpec {
+  override configureBaseImage(
+    image: VmBaseImage,
+  ): VmBaseImage | Promise<VmBaseImage> {
     const versionArg = this.options.version
       ? ` -s "bun-v${this.options.version}"`
       : "";
 
-    const installScript = `#!/bin/bash
-set -e
-export BUN_INSTALL="/opt/bun"
-curl -fsSL https://bun.sh/install | bash${versionArg}
-$BUN_INSTALL/bin/bun --version
-`;
-
-    const bunInit = `export BUN_INSTALL="/opt/bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-`;
-
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        additionalFiles: {
-          "/opt/install-bun.sh": {
-            content: installScript,
-          },
-          "/etc/profile.d/bun.sh": {
-            content: bunInit,
-          },
-        },
-        systemd: {
-          services: [
-            {
-              name: "install-bun",
-              mode: "oneshot",
-              deleteAfterSuccess: this.options.deleteAfterSuccess,
-              env: {
-                HOME: "/root",
-              },
-              exec: ["bash /opt/install-bun.sh"],
-              timeoutSec: 300,
-            },
-          ],
-        },
-      }),
-    );
+    return image.runCommands(`
+apt-get update
+apt-get install -y --no-install-recommends ca-certificates curl unzip
+rm -rf /var/lib/apt/lists/*
+curl -fsSL https://bun.sh/install | BUN_INSTALL="/opt/bun" bash${versionArg}
+echo 'export BUN_INSTALL="/opt/bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"' > /etc/profile.d/bun.sh
+/opt/bun/bin/bun --version`);
   }
 
-  createInstance(): VmBunInstance {
-    return new VmBunInstance(this);
+  override configureSpec(spec: VmSpec): VmSpec {
+    spec.systemdService({
+      name: "install-bun",
+      mode: "oneshot",
+      env: {
+        HOME: "/root",
+      },
+      exec: ["/opt/bun/bin/bun --version"],
+      timeoutSec: 30,
+    });
+    return spec;
   }
 
   workspace(options: { path: string; install?: boolean }): BunWorkspace {
     const workspace = new BunWorkspace(options);
     this.workspaces.push(workspace);
     return workspace;
+  }
+
+  createInstance(): VmBunInstance {
+    return new VmBunInstance(this);
   }
 
   installServiceName(): string {
@@ -129,28 +119,18 @@ export class BunWorkspace extends VmWith<BunWorkspaceInstance> {
 
   override configureSpec(spec: VmSpec): VmSpec {
     if (this.options.install) {
-      return this.composeSpecs(
-        spec,
-        new VmSpec({
-          systemd: {
-            services: [
-              {
-                name: this.getInstallServiceName(),
-                mode: "oneshot",
-                exec: ["/opt/bun/bin/bun install"],
-                workdir: this.options.path,
-                env: {
-                  HOME: "/root",
-                  BUN_INSTALL: "/opt/bun",
-                  PATH: "/opt/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-                  ...this.env,
-                },
-                user: "root",
-              },
-            ],
-          },
-        }),
-      );
+      spec.systemdService({
+        name: this.getInstallServiceName(),
+        mode: "oneshot",
+        bash: "/opt/bun/bin/bun install",
+        workdir: this.options.path,
+        env: {
+          HOME: "/root",
+          BUN_INSTALL: "/opt/bun",
+          ...this.env,
+        },
+        user: "root",
+      });
     }
     return spec;
   }
@@ -189,33 +169,23 @@ export class BunWorkspaceTask extends VmWith<BunWorkspaceTaskInstance> {
   }
 
   override configureSpec(spec: VmSpec): VmSpec {
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        systemd: {
-          services: [
-            {
-              name: this.getServiceName(),
-              exec: [`/opt/bun/bin/bun run ${this.name}`],
-              workdir: this.workspace.options.path,
-              after: this.workspace.options.install
-                ? [this.workspace.getInstallServiceName()]
-                : undefined,
-              requires: this.workspace.options.install
-                ? [this.workspace.getInstallServiceName()]
-                : undefined,
-              env: {
-                HOME: "/root",
-                BUN_INSTALL: "/opt/bun",
-                PATH: "/opt/bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-                ...this.env,
-              },
-              user: "root",
-            },
-          ],
-        },
-      }),
-    );
+    const installService = this.workspace.options.install
+      ? [this.workspace.getInstallServiceName()]
+      : [];
+    spec.systemdService({
+      name: this.getServiceName(),
+      bash: `/opt/bun/bin/bun run ${this.name}`,
+      workdir: this.workspace.options.path,
+      after: installService.length ? installService : undefined,
+      requires: installService.length ? installService : undefined,
+      env: {
+        HOME: "/root",
+        BUN_INSTALL: "/opt/bun",
+        ...this.env,
+      },
+      user: "root",
+    });
+    return spec;
   }
 
   override createInstance(): BunWorkspaceTaskInstance {
