@@ -1,109 +1,101 @@
 # @freestyle-sh/with-postgres
 
-PostgreSQL runtime extension for Freestyle VMs. Provides a fully configured PostgreSQL database server in your Freestyle VM.
+PostgreSQL runtime extension for Freestyle VMs. Declaratively configure a PostgreSQL server, databases, and schema/seed scripts that run during VM snapshot setup.
 
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-postgres freestyle-sandboxes
+npm install @freestyle-sh/with-postgres freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmPostgres } from "@freestyle-sh/with-postgres";
 
-const { vm } = await freestyle.vms.create({
-  with: {
-    postgres: new VmPostgres({
-      password: "mypassword",
-      database: "mydb",
-      version: "16", // Optional, defaults to "16"
-      user: "postgres", // Optional, defaults to "postgres"
-    }),
-  },
+const pg = new VmPostgres({ password: "secret" });
+
+const db = pg.database({ name: "myapp", create: true });
+
+const schema = db.script("schema", {
+  sql: `
+    CREATE TABLE users (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100)
+    );
+  `,
 });
 
-// Create a table
-await vm.postgres.exec(`
-  CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100)
-  )
-`);
+const seed = db.script("seed", {
+  sql: `INSERT INTO users (name) VALUES ('Alice'), ('Bob');`,
+  after: [schema],
+});
 
-// Insert data
-await vm.postgres.exec(`
-  INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com')
-`);
+const spec = new VmSpec()
+  .with("postgres", pg)
+  .with("db", db)
+  .with("schema", schema)
+  .with("seed", seed)
+  .snapshot();
 
-// Query data
-const result = await vm.postgres.query<{ id: number; name: string; email: string }>(`
-  SELECT * FROM users
-`);
+const { vm } = await freestyle.vms.create({ spec });
 
-console.log(result.rows); // [{ id: 1, name: 'Alice', email: 'alice@example.com' }]
+const result = await vm.db.query<{ id: number; name: string }>(
+  `SELECT * FROM users`
+);
+console.log(result.rows); // [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]
 ```
+
+The install, database creation, and each script run as ordered systemd oneshot services during snapshot setup, so everything is baked into the snapshot.
 
 ## API
 
-### Constructor Options
+### `new VmPostgres(options?)`
 
-- `version?: string` - PostgreSQL version to install (default: "16")
-- `password?: string` - Password for the postgres user (default: "postgres")
-- `database?: string` - Default database to create (default: "postgres")
-- `user?: string` - PostgreSQL user (default: "postgres")
+Configures the PostgreSQL server. Pure config — has no runtime methods.
 
-### Methods
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `version` | `string` | `"18"` | PostgreSQL major version (installed from the official PGDG apt repo) |
+| `password` | `string` | `"postgres"` | Password for the postgres superuser |
+| `user` | `string` | `"postgres"` | PostgreSQL superuser name |
 
-#### `query<T>(sql: string): Promise<QueryResult<T>>`
+### `pg.database({ name, create? })`
 
-Execute a SQL query and return results as JSON.
+Declares a database. Returns a `Database` you can attach scripts to and query at runtime.
 
-**Returns:** `{ rows: T[], rowCount: number, error?: string }`
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `name` | `string` | — | Database name |
+| `create` | `boolean` | `false` | If true, idempotently creates the database during snapshot setup |
 
-```typescript
-const result = await vm.postgres.query<{ id: number; name: string }>(`
-  SELECT id, name FROM users WHERE id = 1
-`);
-```
+#### `vm.<name>.query<T>(sql)`
 
-#### `exec(sql: string): Promise<{ success: boolean, error?: string }>`
+Run a SQL query against this database. Returns `{ rows: T[], rowCount, error? }`. Results are returned as a JSON array (psql wraps the query in `json_agg(row_to_json(...))`).
 
-Execute a SQL command without returning results (for CREATE, INSERT, UPDATE, DELETE, etc.).
+#### `vm.<name>.exec(sql)`
 
-```typescript
-const result = await vm.postgres.exec(`
-  UPDATE users SET name = 'Bob' WHERE id = 1
-`);
-```
+Run a SQL command without returning rows. Returns `{ success, error? }`.
 
-#### `createDatabase(dbName: string): Promise<{ success: boolean, error?: string }>`
+### `db.script(name, { sql, after? })`
 
-Create a new database.
+Declares a SQL script that runs once during snapshot setup against this database.
 
-```typescript
-await vm.postgres.createDatabase("newdb");
-```
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sql` | `string` | — | Inline SQL to execute |
+| `after` | `DatabaseScript[]` | `[]` | Scripts that must run before this one |
 
-#### `dropDatabase(dbName: string): Promise<{ success: boolean, error?: string }>`
+Each script becomes a systemd oneshot with `ON_ERROR_STOP=1`, so the snapshot fails fast if any SQL errors. Scripts depend automatically on the database's create service (or on `install-postgres` if `create: false`), and on every script listed in `after`.
 
-Drop a database.
+#### `vm.<name>.logs()`
 
-```typescript
-await vm.postgres.dropDatabase("olddb");
-```
+Returns the journalctl output for the script's systemd service as `string[]`.
 
-## How It Works
+## How it works
 
-The package uses a systemd oneshot service to install and configure PostgreSQL during VM creation:
-
-1. Installs PostgreSQL from apt repositories
-2. Configures password authentication
-3. Creates the default database (if specified)
-4. Enables network connections
-5. Starts PostgreSQL as a system service
-
-The installation is fully automated and completes during VM initialization.
+1. `VmPostgres` adds the official PGDG apt repository and installs the requested PostgreSQL version (see https://www.postgresql.org/download/linux/debian/), then sets the superuser password and enables md5 password auth on TCP and the local socket.
+2. Each `database({ create: true })` adds a oneshot that creates the database if it doesn't exist.
+3. Each `script(...)` writes its SQL to `/opt/pg-scripts/<db>/<name>.sql` and adds a oneshot that runs `psql -f` against the right database, in the order you declared via `after`.
+4. All setup oneshots use `deleteAfterSuccess: true`, so they don't re-run on reboot from the snapshot.

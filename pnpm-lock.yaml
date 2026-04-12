@@ -174,9 +174,9 @@ importers:
 
   with-postgres:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-pty:
     dependencies:
