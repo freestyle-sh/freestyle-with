@@ -65,7 +65,7 @@ curl -fsSL https://deno.land/install.sh | DENO_INSTALL="/opt/deno" sh -s -- --ye
   }
 
   workspace(options: { path: string; install?: boolean }): DenoWorkspace {
-    const workspace = new DenoWorkspace(options);
+    const workspace = new DenoWorkspace(options, undefined, this);
     this.workspaces.push(workspace);
     return workspace;
   }
@@ -82,14 +82,17 @@ curl -fsSL https://deno.land/install.sh | DENO_INSTALL="/opt/deno" sh -s -- --ye
 export class DenoWorkspace extends VmWith<DenoWorkspaceInstance> {
   options: { path: string; install?: boolean };
   env?: Record<string, string>;
+  deno?: VmDeno;
 
   constructor(
     options: { path: string; install?: boolean },
     env?: Record<string, string>,
+    deno?: VmDeno,
   ) {
     super();
     this.options = options;
     this.env = env;
+    this.deno = deno;
   }
 
   task(
@@ -119,6 +122,7 @@ export class DenoWorkspace extends VmWith<DenoWorkspaceInstance> {
       spec.systemdService({
         name: this.getInstallServiceName(),
         mode: "oneshot",
+        after: this.deno ? [this.deno.installServiceName()] : undefined,
         bash: "/opt/deno/bin/deno install",
         workdir: this.options.path,
         env: {
@@ -170,8 +174,13 @@ export class DenoWorkspaceTask extends VmWith<DenoWorkspaceTaskInstance> {
       name: this.getServiceName(),
       bash: `/opt/deno/bin/deno task ${this.name}`,
       workdir: this.workspace.options.path,
-      after: [this.workspace.getInstallServiceName()],
-      requires: [this.workspace.getInstallServiceName()],
+      after: [
+        ...(this.workspace.deno ? [this.workspace.deno.installServiceName()] : []),
+        ...(this.workspace.options.install ? [this.workspace.getInstallServiceName()] : []),
+      ],
+      requires: this.workspace.options.install
+        ? [this.workspace.getInstallServiceName()]
+        : undefined,
       env: {
         HOME: "/root",
         DENO_DIR: "/root/.cache/deno",
