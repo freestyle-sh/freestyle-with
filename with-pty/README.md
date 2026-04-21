@@ -14,13 +14,13 @@ Set `applyDefaultTmuxConfig: false` to opt out.
 ## Installation
 
 ```bash
-pnpm add @freestyle-sh/with-pty freestyle-sandboxes
+pnpm add @freestyle-sh/with-pty freestyle
 ```
 
 ## Usage
 
 ```ts
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmPty } from "@freestyle-sh/with-pty";
 
 const { vm } = await freestyle.vms.create({

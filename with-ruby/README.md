@@ -5,13 +5,13 @@ Ruby runtime via [RVM](https://rvm.io) for [Freestyle](https://freestyle.sh) VMs
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-ruby freestyle-sandboxes
+npm install @freestyle-sh/with-ruby freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmRuby } from "@freestyle-sh/with-ruby";
 
 const { vm } = await freestyle.vms.create({

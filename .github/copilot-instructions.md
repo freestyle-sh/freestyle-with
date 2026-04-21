@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-This is a **pnpm workspace monorepo** that provides runtime environment extensions for the `freestyle-sandboxes` VM system. Each package adds a specific programming language runtime (Node.js, Python, Java) to Freestyle VMs by implementing the `VmWith` pattern.
+This is a **pnpm workspace monorepo** that provides runtime environment extensions for the `freestyle` VM system. Each package adds a specific programming language runtime (Node.js, Python, Java) to Freestyle VMs by implementing the `VmWith` pattern.
 
 ## Architecture Pattern: VmWith Builders
 
-All packages follow the **builder + instance** pattern from `freestyle-sandboxes`:
+All packages follow the **builder + instance** pattern from `freestyle`:
 
 1. **Builder class** (extends `VmWith<T>`) - Defines VM configuration
 

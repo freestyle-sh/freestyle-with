@@ -5,13 +5,13 @@ Playwright runtime for [Freestyle](https://freestyle.sh) VMs, including browser 
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-playwright freestyle-sandboxes
+npm install @freestyle-sh/with-playwright freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmPlaywright } from "@freestyle-sh/with-playwright";
 
 const { vm } = await freestyle.vms.create({

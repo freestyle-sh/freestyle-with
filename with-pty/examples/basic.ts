@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmPty } from "../src/index.ts";
 
 const { vm, vmId } = await freestyle.vms.create({

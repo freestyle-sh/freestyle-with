@@ -1,6 +1,6 @@
-import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
+import { VmSpec, VmWith, VmWithInstance } from "freestyle";
 import type { VmPtySessionLike } from "@freestyle-sh/with-pty";
-import type { Freestyle } from "freestyle-sandboxes";
+import type { Freestyle } from "freestyle";
 
 // ============================================================================
 // Configuration Types

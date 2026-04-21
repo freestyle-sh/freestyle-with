@@ -3,7 +3,7 @@ import {
   type CreateVmOptions,
   VmWith,
   VmWithInstance,
-} from "freestyle-sandboxes";
+} from "freestyle";
 import type {
   JSONValue,
   RunCodeResponse,

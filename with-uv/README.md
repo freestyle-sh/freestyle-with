@@ -5,13 +5,13 @@ Python runtime via [uv](https://github.com/astral-sh/uv) for [Freestyle](https:/
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-uv freestyle-sandboxes
+npm install @freestyle-sh/with-uv freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmUv } from "@freestyle-sh/with-uv";
 
 const { vm } = await freestyle.vms.create({

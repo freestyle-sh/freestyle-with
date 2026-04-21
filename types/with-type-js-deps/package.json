@@ -1,10 +1,10 @@
 {
   "name": "@freestyle-sh/with-type-js-deps",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.28"
+    "freestyle": "^0.1.46"
   },
   "type": "module",
   "main": "./dist/index.js",

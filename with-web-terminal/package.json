@@ -1,6 +1,6 @@
 {
   "name": "@freestyle-sh/with-web-terminal",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Web terminal for freestyle sandboxes",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,6 +29,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.28"
+    "freestyle": "^0.1.46"
   }
 }

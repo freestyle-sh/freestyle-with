@@ -1,11 +1,11 @@
 {
   "name": "@freestyle-sh/with-claude-code",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.72",
-    "freestyle-sandboxes": "^0.1.14"
+    "freestyle": "^0.1.46"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

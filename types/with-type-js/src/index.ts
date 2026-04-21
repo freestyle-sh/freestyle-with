@@ -1,4 +1,4 @@
-import { VmWith, VmWithInstance } from "freestyle-sandboxes";
+import { VmWith, VmWithInstance } from "freestyle";
 import type {
   VmRunCodeInstance,
   VmRunCode,

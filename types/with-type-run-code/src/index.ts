@@ -1,4 +1,4 @@
-import type { VmWith, VmWithInstance } from "freestyle-sandboxes";
+import type { VmWith, VmWithInstance } from "freestyle";
 
 export interface VmRunCode<T extends VmWithInstance> extends VmWith<T> {}
 

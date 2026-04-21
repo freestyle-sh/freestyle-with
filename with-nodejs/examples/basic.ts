@@ -5,7 +5,7 @@ import { VmNodeJs } from "../src/index.ts";
 const node = new VmNodeJs();
 const spec = new VmSpec().with("node", node);
 
-const { vm, vmId } = await freestyle.vms.create({ spec });
+const { vm, vmId } = await freestyle.vms.create({ spec, logger: console.log });
 
 console.log(vmId);
 

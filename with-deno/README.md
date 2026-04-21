@@ -5,13 +5,13 @@ Deno runtime for [Freestyle](https://freestyle.sh) VMs.
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-deno freestyle-sandboxes
+npm install @freestyle-sh/with-deno freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmDeno } from "@freestyle-sh/with-deno";
 
 const deno = new VmDeno();
@@ -122,7 +122,7 @@ const res = await vm.deno.runCode({
 Use the Deno builder to attach a workspace and run a Deno task as a managed systemd service.
 
 ```typescript
-import { Freestyle, VmSpec } from "freestyle-sandboxes";
+import { Freestyle, VmSpec } from "freestyle";
 import { VmDeno } from "@freestyle-sh/with-deno";
 
 const freestyle = new Freestyle();

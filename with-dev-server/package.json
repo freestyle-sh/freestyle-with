@@ -1,10 +1,10 @@
 {
   "name": "@freestyle-sh/with-dev-server",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "freestyle-sandboxes": "^0.1.28",
+    "freestyle": "^0.1.46",
     "@freestyle-sh/with-nodejs": "workspace:^",
     "@freestyle-sh/with-pty": "workspace:^"
   },

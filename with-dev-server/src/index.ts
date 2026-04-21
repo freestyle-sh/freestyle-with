@@ -1,6 +1,6 @@
 import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 import type { VmPtySessionLike } from "@freestyle-sh/with-pty";
-import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
+import { VmSpec, VmWith, VmWithInstance } from "freestyle";
 
 export type DevServerOptions = {
   templateRepo?: string;

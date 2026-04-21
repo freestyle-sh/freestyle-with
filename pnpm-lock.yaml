@@ -38,21 +38,21 @@ importers:
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../with-type-run-code
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   types/with-type-js-deps:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   types/with-type-run-code:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-bun:
     dependencies:
@@ -78,9 +78,9 @@ importers:
       '@anthropic-ai/claude-agent-sdk':
         specifier: ^0.2.72
         version: 0.2.72(zod@4.3.6)
-      freestyle-sandboxes:
-        specifier: ^0.1.14
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -97,9 +97,9 @@ importers:
       '@freestyle-sh/with-type-js':
         specifier: workspace:*
         version: link:../types/with-type-js
-      freestyle-sandboxes:
-        specifier: ^0.1.43
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -119,18 +119,18 @@ importers:
       '@freestyle-sh/with-pty':
         specifier: workspace:^
         version: link:../with-pty
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-java:
     dependencies:
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../types/with-type-run-code
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-nodejs:
     dependencies:
@@ -146,9 +146,9 @@ importers:
       '@opencode-ai/sdk':
         specifier: ^1.1.42
         version: 1.1.42
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       '@freestyle-sh/with-web-terminal':
         specifier: workspace:*
@@ -168,9 +168,9 @@ importers:
       '@freestyle-sh/with-type-js':
         specifier: workspace:^
         version: link:../types/with-type-js
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-postgres:
     dependencies:
@@ -180,9 +180,9 @@ importers:
 
   with-pty:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       pkgroll:
         specifier: ^2.11.2
@@ -196,24 +196,24 @@ importers:
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../types/with-type-run-code
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-ruby:
     dependencies:
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../types/with-type-run-code
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-sandbox-agent:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
       sandbox-agent:
         specifier: ^0.1.3
         version: 0.1.3
@@ -233,9 +233,9 @@ importers:
       '@freestyle-sh/with-pty':
         specifier: workspace:^
         version: link:../with-pty
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       pkgroll:
         specifier: ^2.11.2
@@ -249,15 +249,15 @@ importers:
       '@freestyle-sh/with-type-run-code':
         specifier: workspace:^
         version: link:../types/with-type-run-code
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-vscode:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.14
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -271,9 +271,9 @@ importers:
 
   with-web-terminal:
     dependencies:
-      freestyle-sandboxes:
-        specifier: ^0.1.28
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
     devDependencies:
       pkgroll:
         specifier: ^2.11.2
@@ -1090,11 +1090,6 @@ packages:
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
-
-  freestyle-sandboxes@0.1.43:
-    resolution: {integrity: sha512-00FGs+7DPJsFwJ0mOIpJlhS2Fb8cwls0GBSo48KoqDzIfmXx4njKcvvxWzM8GNxcG++U+hQqsqbfqP2llw1Tug==}
-    deprecated: This package has been deprecated. Please use freestyle instead.
-    hasBin: true
 
   freestyle@0.1.46:
     resolution: {integrity: sha512-2Cw+M0zD3LzFR9HXx7Mu5n4q6POjpDKrCNOx+vQi0gio31Hs8BtxE8+gG27K6vQTQS6Pz7MEqINgrbA/g9IxMw==}
@@ -2160,12 +2155,6 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.3: {}
-
-  freestyle-sandboxes@0.1.43:
-    optionalDependencies:
-      dotenv: 17.3.1
-      glob: 13.0.6
-      yargs: 18.0.0
 
   freestyle@0.1.46:
     optionalDependencies:

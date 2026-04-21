@@ -1,6 +1,6 @@
 /// <reference path="./direct-connect.d.ts" />
 
-import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
+import { VmSpec, VmWith, VmWithInstance } from "freestyle";
 
 import {
   Query,

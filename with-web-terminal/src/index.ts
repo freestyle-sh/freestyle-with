@@ -4,7 +4,7 @@ import {
   VmWith,
   VmWithInstance,
   Freestyle,
-} from "freestyle-sandboxes";
+} from "freestyle";
 
 // ============================================================================
 // Configuration Types

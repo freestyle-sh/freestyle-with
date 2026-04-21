@@ -5,13 +5,13 @@ Node.js runtime via [NVM](https://github.com/nvm-sh/nvm) for [Freestyle](https:/
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-nodejs freestyle-sandboxes
+npm install @freestyle-sh/with-nodejs freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 
 const { vm } = await freestyle.vms.create({
@@ -96,7 +96,7 @@ type InstallResult = {
 Use the Node.js builder to attach a workspace and run an npm script as a managed systemd service.
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmNodeJs } from "@freestyle-sh/with-nodejs";
 
 const SOURCE_REPO = "https://github.com/freestyle-sh/freestyle-next";

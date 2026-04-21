@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmPlaywright } from "../src/index.ts";
 
 const spec = new VmSpec({

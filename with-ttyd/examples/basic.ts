@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmWebTerminal as VmTtyd } from "../src/index.ts";
 import { VmDevServer } from "../../with-dev-server/src/index.ts";
 import { VmPtySession } from "../../with-pty/src/index.ts";
@@ -55,7 +55,7 @@ const { vmId, vm } = await freestyle.vms.create({
 
 await vm.devServer.getLogs().then(console.log);
 
-console.log("npx freestyle-sandboxes vm ssh " + vmId);
+console.log("npx freestyle vm ssh " + vmId);
 console.log(`Dev server available at: https://${domain}`);
 console.log(`Terminal available at: https://dev-logs-${domain}`);
 console.log(`Other terminals available at: https://other-terminals-${domain}`);

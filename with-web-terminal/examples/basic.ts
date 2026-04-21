@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle } from "freestyle-sandboxes";
+import { freestyle } from "freestyle";
 import { VmWebTerminal } from "../src/index.ts";
 
 const terminal = new VmWebTerminal({

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmOpenCode } from "../src/index.ts";
 
 const id = crypto.randomUUID().slice(0, 8);

@@ -1,5 +1,5 @@
-import { VmWith, VmWithInstance } from "freestyle-sandboxes";
-import { VmSpec, type CreateVmOptions } from "freestyle-sandboxes";
+import { VmWith, VmWithInstance } from "freestyle";
+import { VmSpec, type CreateVmOptions } from "freestyle";
 import type {
   JSONValue,
   RunCodeResponse,

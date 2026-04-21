@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmVscode } from "../src/index.ts";
 
 const vscode = new VmVscode({
@@ -22,5 +22,5 @@ const { vmId, vm } = await freestyle.vms.create({
   ],
 });
 
-console.log("npx freestyle-sandboxes vm ssh " + vmId);
+console.log("npx freestyle vm ssh " + vmId);
 console.log(`VS Code available at: https://${domain}`);

@@ -1,4 +1,4 @@
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmSandboxAgent } from "../src/index.js";
 
 const { vm } = await freestyle.vms.create({

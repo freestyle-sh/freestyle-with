@@ -1,4 +1,4 @@
-// import { freestyle, VmTemplate } from "freestyle-sandboxes";
+// import { freestyle, VmTemplate } from "freestyle";
 // import { VmNodeJs } from "..";
 
 // const { repoId } = await freestyle.git.repos.create({

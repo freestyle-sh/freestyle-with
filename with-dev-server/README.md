@@ -5,13 +5,13 @@ Node.js runtime via [NVM](https://github.com/nvm-sh/nvm) for [Freestyle](https:/
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-nodejs freestyle-sandboxes
+npm install @freestyle-sh/with-nodejs freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmDevServer } from "../src/index";
 import { VmPtySession } from "@freestyle-sh/with-pty";
 

@@ -32,7 +32,7 @@ const packageJson = {
   packageManager: "pnpm@10.11.0",
   private: false,
   dependencies: {
-    "freestyle-sandboxes": "^0.1.14",
+    "freestyle": "^0.1.14",
   },
   devDependencies: {
     "@types/node": "^22.0.0",
@@ -83,7 +83,7 @@ const indexTs = `import {
   VmSpec,
   VmWith,
   VmWithInstance,
-} from "freestyle-sandboxes";
+} from "freestyle";
 
 export type ${className}Options = {
   // Add your options here

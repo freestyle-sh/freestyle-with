@@ -3,7 +3,7 @@ import {
   VmWith,
   VmWithInstance,
   type Freestyle,
-} from "freestyle-sandboxes";
+} from "freestyle";
 import { SandboxAgent } from "sandbox-agent";
 
 type KnownEnvKeys =

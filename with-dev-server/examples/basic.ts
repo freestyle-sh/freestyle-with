@@ -1,4 +1,4 @@
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmDevServer } from "../src/index";
 
 const TEMPLATE_REPO = "https://github.com/freestyle-sh/freestyle-next";

@@ -5,13 +5,13 @@
 ## Installation
 
 ```bash
-npm install @freestyle-sh/with-vscode freestyle-sandboxes
+npm install @freestyle-sh/with-vscode freestyle
 ```
 
 ## Usage
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmVscode } from "@freestyle-sh/with-vscode";
 
 const domain = `${crypto.randomUUID()}.style.dev`;

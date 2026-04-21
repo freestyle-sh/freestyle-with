@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-bun add @freestyle-sh/with-opencode freestyle-sandboxes
+bun add @freestyle-sh/with-opencode freestyle
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ bun add @freestyle-sh/with-opencode freestyle-sandboxes
 ### Basic Setup
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmOpenCode } from "@freestyle-sh/with-opencode";
 
 const { vm } = await freestyle.vms.create({
@@ -53,7 +53,7 @@ const { client } = await vm.opencode.client({
 ### With Authentication
 
 ```typescript
-import { freestyle, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmSpec } from "freestyle";
 import { VmOpenCode } from "@freestyle-sh/with-opencode";
 
 const { vm } = await freestyle.vms.create({

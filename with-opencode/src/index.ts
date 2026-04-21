@@ -4,7 +4,7 @@ import {
   VmWith,
   VmWithInstance,
   type Freestyle,
-} from "freestyle-sandboxes";
+} from "freestyle";
 import { createOpencodeClient, type Config as OpenCodeConfig } from "@opencode-ai/sdk/v2";
 
 export type { OpenCodeConfig };

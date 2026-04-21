@@ -1,4 +1,4 @@
-import { VmSpec, VmWith, VmWithInstance } from "freestyle-sandboxes";
+import { VmSpec, VmWith, VmWithInstance } from "freestyle";
 
 export type VmPtyOptions = {
   installTmux?: boolean;

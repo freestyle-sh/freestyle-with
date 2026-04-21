@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { freestyle, VmBaseImage, VmSpec } from "freestyle-sandboxes";
+import { freestyle, VmBaseImage, VmSpec } from "freestyle";
 import { VmDeno } from "../src/index.ts";
 
 const deno = new VmDeno();
