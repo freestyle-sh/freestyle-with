@@ -1,5 +1,9 @@
-import { VmWith, VmWithInstance } from "freestyle-sandboxes";
-import { VmSpec, type CreateVmOptions } from "freestyle-sandboxes";
+import {
+  VmBaseImage,
+  VmSpec,
+  VmWith,
+  VmWithInstance,
+} from "freestyle";
 import type {
   JSONValue,
   RunCodeResponse,
@@ -27,49 +31,36 @@ export class VmNodeJs
     };
   }
 
-  override configureSnapshotSpec(spec: VmSpec): VmSpec {
-    const installScript = `#!/bin/bash
-set -e
+  override configureBaseImage(
+    image: VmBaseImage,
+  ): VmBaseImage | Promise<VmBaseImage> {
+    return image.runCommands(`
+apt-get update
+apt-get install -y --no-install-recommends ca-certificates curl
+rm -rf /var/lib/apt/lists/*
 export NVM_DIR="/opt/nvm"
 mkdir -p "$NVM_DIR"
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-source "$NVM_DIR/nvm.sh"
+. "$NVM_DIR/nvm.sh"
 nvm install ${this.options.version}
 nvm alias default ${this.options.version}
+printf 'export NVM_DIR="/opt/nvm"\\n[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"\\n[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"\\n' > /etc/profile.d/nvm.sh
 node -v
-npm -v
-`;
+npm -v`);
+  }
 
-    // load nvm into all user's shells
-    const nvmInit = `export NVM_DIR="/opt/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
-`;
-
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        additionalFiles: {
-          "/opt/install-nodejs.sh": {
-            content: installScript,
-          },
-          "/etc/profile.d/nvm.sh": {
-            content: nvmInit,
-          },
-        },
-        systemd: {
-          services: [
-            {
-              name: "install-nodejs",
-              mode: "oneshot",
-              deleteAfterSuccess: true,
-              exec: ["bash /opt/install-nodejs.sh"],
-              timeoutSec: 300,
-            },
-          ],
-        },
-      }),
-    );
+  override configureSpec(spec: VmSpec): VmSpec {
+    spec.systemdService({
+      name: "install-nodejs",
+      mode: "oneshot",
+      env: {
+        HOME: "/root",
+        NVM_DIR: "/opt/nvm",
+      },
+      bash: 'source /opt/nvm/nvm.sh && node -v && npm -v',
+      timeoutSec: 30,
+    });
+    return spec;
   }
 
   createInstance(): NodeJsRuntimeInstance {
@@ -83,7 +74,7 @@ npm -v
   }
 
   installServiceName(): string {
-    return `install-nodejs.service`;
+    return "install-nodejs.service";
   }
 }
 
@@ -124,27 +115,18 @@ export class NodeJsWorkspace extends VmWith<NodeJsWorkspaceInstance> {
 
   override configureSpec(spec: VmSpec): VmSpec {
     if (this.options.install) {
-      return this.composeSpecs(
-        spec,
-        new VmSpec({
-          systemd: {
-            services: [
-              {
-                name: this.getInstallServiceName(),
-                mode: "oneshot",
-                exec: ['bash -lc "source /opt/nvm/nvm.sh && npm install"'],
-                workdir: this.options.path,
-                env: {
-                  HOME: "/root",
-                  NVM_DIR: "/opt/nvm",
-                  ...this.env,
-                },
-                user: "root",
-              },
-            ],
-          },
-        }),
-      );
+      spec.systemdService({
+        name: this.getInstallServiceName(),
+        mode: "oneshot",
+        bash: "source /opt/nvm/nvm.sh && npm install",
+        workdir: this.options.path,
+        env: {
+          HOME: "/root",
+          NVM_DIR: "/opt/nvm",
+          ...this.env,
+        },
+        user: "root",
+      });
     }
     return spec;
   }
@@ -183,34 +165,23 @@ export class NodeJsWorkspaceTask extends VmWith<NodeJsWorkspaceTaskInstance> {
   }
 
   override configureSpec(spec: VmSpec): VmSpec {
-    return this.composeSpecs(
-      spec,
-      new VmSpec({
-        systemd: {
-          services: [
-            {
-              name: this.getServiceName(),
-              exec: [
-                `bash -lc "source /opt/nvm/nvm.sh && npm run ${this.name}"`,
-              ],
-              workdir: this.workspace.options.path,
-              after: this.workspace.options.install
-                ? [this.workspace.getInstallServiceName()]
-                : undefined,
-              requires: this.workspace.options.install
-                ? [this.workspace.getInstallServiceName()]
-                : undefined,
-              env: {
-                HOME: "/root",
-                NVM_DIR: "/opt/nvm",
-                ...this.env,
-              },
-              user: "root",
-            },
-          ],
-        },
-      }),
-    );
+    const installService = this.workspace.options.install
+      ? [this.workspace.getInstallServiceName()]
+      : [];
+    spec.systemdService({
+      name: this.getServiceName(),
+      bash: `source /opt/nvm/nvm.sh && npm run ${this.name}`,
+      workdir: this.workspace.options.path,
+      after: installService.length ? installService : undefined,
+      requires: installService.length ? installService : undefined,
+      env: {
+        HOME: "/root",
+        NVM_DIR: "/opt/nvm",
+        ...this.env,
+      },
+      user: "root",
+    });
+    return spec;
   }
 
   override createInstance(): NodeJsWorkspaceTaskInstance {
@@ -283,16 +254,17 @@ class NodeJsRuntimeInstance
           .join(" ")} `
       : "";
     const cdPrefix = workdir ? `cd ${shellEscape(workdir)} && ` : "";
-    const command = `${cdPrefix}${envPrefix}node -e "${code.replace(/"/g, '\\"')}"${
-      argvArgs ? ` -- ${argvArgs}` : ""
-    }`;
+    const command = `bash -lc ${shellEscape(
+      `${cdPrefix}${envPrefix}node -e "${code.replace(/"/g, '\\"')}"${
+        argvArgs ? ` -- ${argvArgs}` : ""
+      }`,
+    )}`;
 
     const result = await this.vm.exec({
       command,
     });
 
     let parsedResult = undefined;
-    let error = undefined;
 
     if (result.stdout) {
       const lines = result.stdout
@@ -304,11 +276,7 @@ class NodeJsRuntimeInstance
       if (lastLine) {
         try {
           parsedResult = JSON.parse(lastLine);
-        } catch (e) {
-          if (result.stderr) {
-            error = `Failed to parse JSON output. Stderr: ${result.stderr}`;
-          }
-        }
+        } catch (e) {}
       }
     }
 
@@ -329,7 +297,6 @@ class NodeJsRuntimeInstance
       const cdPrefix = options?.directory ? `cd ${options.directory} && ` : "";
 
       if (!options?.deps) {
-        // Install from package.json
         command = `${cdPrefix}npm install`;
       } else {
         const deps = Array.isArray(options.deps)
@@ -340,7 +307,10 @@ class NodeJsRuntimeInstance
       }
     }
 
-    const result = await this.vm.exec({ command });
+    const shellEscape = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
+    const result = await this.vm.exec({
+      command: `bash -lc ${shellEscape(command)}`,
+    });
 
     return {
       success: result.statusCode === 0,

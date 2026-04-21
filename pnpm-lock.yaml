@@ -137,9 +137,9 @@ importers:
       '@freestyle-sh/with-type-js':
         specifier: workspace:^
         version: link:../types/with-type-js
-      freestyle-sandboxes:
-        specifier: ^0.1.41
-        version: 0.1.43
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
 
   with-opencode:
     dependencies:

@@ -1,11 +1,11 @@
 {
   "name": "@freestyle-sh/with-nodejs",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
     "@freestyle-sh/with-type-js": "workspace:^",
-    "freestyle-sandboxes": "^0.1.41"
+    "freestyle": "^0.1.46"
   },
   "type": "module",
   "main": "./dist/index.js",
