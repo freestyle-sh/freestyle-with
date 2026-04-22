@@ -131,3 +131,25 @@ pnpm tsx examples/basic.ts
 - **Install scripts need error handling**: Use `set -e` in bash scripts to fail fast
 - **Environment setup**: Node.js requires nvm init in `/etc/profile.d/` for shell availability
 - **Workspace deps**: Use `workspace:^` for internal type packages, not version numbers
+
+## Publishing
+
+**Always publish with `pnpm publish`, never `npm publish`.** Every runtime package
+depends on `@freestyle-sh/with-type-js` (or sibling type packages) via
+`"workspace:^"`. `pnpm publish` rewrites `workspace:^` to the concrete version at
+publish time; `npm publish` uploads the string `"workspace:^"` verbatim, which
+breaks every consumer (bun/npm try to resolve `./^` as a local path and fail with
+a cryptic `Searched in "./^"`).
+
+Typical flow:
+
+```bash
+# From the package dir
+npm version patch --no-git-tag-version
+pnpm run build
+pnpm publish --access public --no-git-checks
+```
+
+Publish order matters — type packages first, then `with-pty` (dep of
+`with-dev-server`), then the rest. If a bad `npm publish` has already gone out,
+you cannot overwrite the version — bump patch again and republish with `pnpm`.
