@@ -13,7 +13,6 @@ npm install @freestyle-sh/with-chromium freestyle
 ```typescript
 import { freestyle, VmSpec } from "freestyle";
 import { VmChromium } from "@freestyle-sh/with-chromium";
-import { TigerVncBackend } from "@freestyle-sh/with-vnc";
 
 const { vm } = await freestyle.vms.create(
   new VmSpec({
@@ -64,7 +63,7 @@ console.log(ws);
 | `homepage` | `string` | `"about:blank"` | Page opened at startup. |
 | `extraArgs` | `string[]` | `[]` | Additional Chromium command-line flags. |
 | `enableVnc` | `boolean` | `true` in headed mode | Start a VNC backend and noVNC services. |
-| `vncBackend` | `VncBackendDefinition` | `new X11VncBackend()` | VNC backend implementation. Use `new TigerVncBackend()` to benchmark or run TigerVNC. |
+| `vncBackend` | `VncBackendDefinition` | `new TigerVncBackend()` | VNC backend implementation. Use `new X11VncBackend()` to opt into x11vnc. |
 | `vncPort` | `number` | `5900` | Raw VNC port inside the VM. |
 | `vncViewOnlyPort` | `number` | `vncPort + 1` | Server-enforced view-only VNC port inside the VM. |
 | `noVncPort` | `number` | `6080` | HTTP noVNC port used for Freestyle domain routing. |
@@ -86,17 +85,20 @@ console.log(ws);
 - `vm.chromium.noVncPort()`
 - `vm.chromium.routeVnc({ domain?, path?, viewOnly? })`
 
-`routeVnc({ viewOnly: true })` routes a separate server-enforced view-only VNC
-service. The default `routeVnc()` remains interactive.
+Chromium uses TigerVNC by default for headed VNC sessions. `routeVnc()` returns
+the default interactive noVNC route. `routeVnc({ viewOnly: true })` routes a
+separate server-enforced view-only VNC service.
 
 VNC backends are pluggable objects with `name`, `aptDeps`, `installCheck`, and
-`command()` fields. `@freestyle-sh/with-vnc` includes `X11VncBackend` and
-`TigerVncBackend`:
+`command()` fields. To override the default backend, import one from
+`@freestyle-sh/with-vnc`:
 
 ```typescript
+import { X11VncBackend } from "@freestyle-sh/with-vnc";
+
 new VmChromium({
   mode: "headed",
-  vncBackend: new TigerVncBackend(),
+  vncBackend: new X11VncBackend(),
 });
 ```
 
@@ -122,3 +124,36 @@ Anthropic computer-use actions: `screenshot`, `cursor_position`, `mouse_move`,
 `left_click`, `right_click`, `middle_click`, `double_click`, `triple_click`,
 `left_click_drag`, `left_mouse_down`, `left_mouse_up`, `scroll`, `hold_key`,
 `wait`, `type`, `key`, and `zoom`.
+
+Screenshots are returned as PNG base64 strings. The convenience screenshot API
+returns dimensions and MIME type:
+
+```typescript
+const screenshot = await vm.chromium.screenshot();
+
+console.log(screenshot.mimeType); // "image/png"
+console.log(screenshot.width, screenshot.height);
+console.log(screenshot.data); // base64 PNG, without a data: URL prefix
+```
+
+To write the screenshot on the caller side:
+
+```typescript
+import { writeFile } from "node:fs/promises";
+
+const screenshot = await vm.chromium.screenshot();
+await writeFile("screenshot.png", Buffer.from(screenshot.data, "base64"));
+```
+
+To use the Anthropic-style action API:
+
+```typescript
+const result = await vm.chromium.computerUse({ action: "screenshot" });
+
+if (result.base64_image) {
+  await writeFile("screenshot.png", Buffer.from(result.base64_image, "base64"));
+}
+```
+
+`screenshot({ path })` also writes the PNG inside the VM at `path` while still
+returning the base64 PNG to the caller.

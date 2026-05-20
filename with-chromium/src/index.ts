@@ -40,7 +40,7 @@ import type {
   VncRoute,
   VncRouteOptions,
 } from "@freestyle-sh/with-type-vnc";
-import { X11VncBackend } from "@freestyle-sh/with-vnc";
+import { TigerVncBackend } from "@freestyle-sh/with-vnc";
 
 export type ChromiumMode = "headless" | "headed";
 
@@ -75,7 +75,7 @@ export type VmChromiumOptions = {
   env?: Record<string, string>;
   /** Start a VNC backend and noVNC in headed mode (default: true in headed mode). */
   enableVnc?: boolean;
-  /** VNC server implementation used by noVNC routes (default: new X11VncBackend()). */
+  /** VNC server implementation used by noVNC routes (default: new TigerVncBackend()). */
   vncBackend?: ChromiumVncBackend;
   /** Raw VNC port used inside the VM (default: 5900). */
   vncPort?: number;
@@ -133,7 +133,7 @@ export class VmChromium
 
     const mode = options?.mode ?? (options?.enableVnc ? "headed" : "headless");
     const enableVnc = options?.enableVnc ?? mode === "headed";
-    const vncBackend = options?.vncBackend ?? new X11VncBackend();
+    const vncBackend = options?.vncBackend ?? new TigerVncBackend();
     const user = options?.user ?? "root";
     const homeDir = user === "root" ? "/root" : `/home/${user}`;
 
