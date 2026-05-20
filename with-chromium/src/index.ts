@@ -13,7 +13,6 @@ import type {
   VmBrowserInstance,
 } from "@freestyle-sh/with-type-browser";
 import type {
-  ComputerUseAction,
   ComputerUseActionResult,
   ComputerUseClickOptions,
   ComputerUseCoordinate,
@@ -24,14 +23,12 @@ import type {
   ComputerUseMouseButton,
   ComputerUseMoveOptions,
   ComputerUseRegion,
-  ComputerUseResult,
   ComputerUseScreenshot,
   ComputerUseScrollOptions,
   ComputerUseTypeOptions,
-  ComputerUseToolDefinition,
-  ComputerUseToolOptions,
   VmComputerUse,
   VmComputerUseInstance,
+  Anthropic,
 } from "@freestyle-sh/with-type-computer-use";
 import type {
   DisplayBackendDefinition,
@@ -621,6 +618,12 @@ export class VmChromiumInstance
     this.builder = builder;
   }
 
+  readonly anthropic: Anthropic.ComputerUse = {
+    computerUseTool: async (options = {}) =>
+      await this.anthropicComputerUseTool(options),
+    computerUse: async (action) => await this.anthropicComputerUse(action),
+  };
+
   cdpPort(): number {
     return this.builder.options.cdpPort;
   }
@@ -633,9 +636,9 @@ export class VmChromiumInstance
     return this.builder.displayBackendPorts();
   }
 
-  async computerUseTool(
-    options: ComputerUseToolOptions = {},
-  ): Promise<ComputerUseToolDefinition> {
+  private async anthropicComputerUseTool(
+    options: Anthropic.ToolOptions = {},
+  ): Promise<Anthropic.ToolDefinition> {
     const display = await this.getDisplaySize();
     const type = options.type ?? "computer_20251124";
     const tool = {
@@ -664,7 +667,9 @@ export class VmChromiumInstance
     };
   }
 
-  async computerUse(action: ComputerUseAction): Promise<ComputerUseResult> {
+  private async anthropicComputerUse(
+    action: Anthropic.Action,
+  ): Promise<Anthropic.Result> {
     this.ensureHeaded();
 
     switch (action.action) {
@@ -1152,7 +1157,7 @@ export class VmChromiumInstance
     return duration;
   }
 
-  private clickButtonArg(action: ComputerUseAction["action"]): string {
+  private clickButtonArg(action: Anthropic.ClickAction["action"]): string {
     switch (action) {
       case "left_click":
         return "1";

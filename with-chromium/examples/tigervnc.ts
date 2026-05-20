@@ -29,7 +29,7 @@ const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 const cdp = await vm.chromium.route();
 const browser = await vm.chromium.cdpJsonVersion();
 
-await vm.chromium.computerUse({
+await vm.chromium.anthropic.computerUse({
   action: "mouse_move",
   coordinate: [260, 220],
 });

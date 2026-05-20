@@ -28,8 +28,8 @@ console.log(display.url);
 const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 console.log(watch.url);
 
-const tool = await vm.chromium.computerUseTool();
-const result = await vm.chromium.computerUse({
+const tool = await vm.chromium.anthropic.computerUseTool();
+const result = await vm.chromium.anthropic.computerUse({
   action: "left_click",
   coordinate: [240, 180],
 });
@@ -151,8 +151,8 @@ new VmChromium({
 
 Headed mode supports:
 
-- `vm.chromium.computerUseTool({ type?, enable_zoom? })`
-- `vm.chromium.computerUse(action)`
+- `vm.chromium.anthropic.computerUseTool({ type?, enable_zoom? })`
+- `vm.chromium.anthropic.computerUse(action)`
 - `vm.chromium.screenshot({ path? })`
 - `vm.chromium.click({ x, y, button? })`
 - `vm.chromium.doubleClick({ x, y, button?, delayMs? })`
@@ -162,13 +162,15 @@ Headed mode supports:
 - `vm.chromium.type({ text, delayMs? })`
 - `vm.chromium.key({ keys })`
 
-`computerUseTool()` returns an Anthropic-compatible `computer_20251124`
-definition by default, including `display_width_px`, `display_height_px`,
-`display_number`, and `enable_zoom`. `computerUse(action)` accepts the
-Anthropic computer-use actions: `screenshot`, `cursor_position`, `mouse_move`,
-`left_click`, `right_click`, `middle_click`, `double_click`, `triple_click`,
-`left_click_drag`, `left_mouse_down`, `left_mouse_up`, `scroll`, `hold_key`,
-`wait`, `type`, `key`, and `zoom`.
+The Anthropic-specific tool schema lives under `vm.chromium.anthropic`.
+`anthropic.computerUseTool()` returns an Anthropic-compatible
+`computer_20251124` definition by default, including `display_width_px`,
+`display_height_px`, `display_number`, and `enable_zoom`.
+`anthropic.computerUse(action)` accepts the Anthropic computer-use actions:
+`screenshot`, `cursor_position`, `mouse_move`, `left_click`, `right_click`,
+`middle_click`, `double_click`, `triple_click`, `left_click_drag`,
+`left_mouse_down`, `left_mouse_up`, `scroll`, `hold_key`, `wait`, `type`, `key`,
+and `zoom`.
 
 Screenshots are returned as PNG base64 strings. The convenience screenshot API
 returns dimensions and MIME type:
@@ -193,7 +195,9 @@ await writeFile("screenshot.png", Buffer.from(screenshot.data, "base64"));
 To use the Anthropic-style action API:
 
 ```typescript
-const result = await vm.chromium.computerUse({ action: "screenshot" });
+const result = await vm.chromium.anthropic.computerUse({
+  action: "screenshot",
+});
 
 if (result.base64_image) {
   await writeFile("screenshot.png", Buffer.from(result.base64_image, "base64"));

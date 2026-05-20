@@ -24,8 +24,10 @@ const display = await vm.chromium.routeDisplay();
 const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 const cdp = await vm.chromium.route();
 const browser = await vm.chromium.cdpJsonVersion();
-const computer = await vm.chromium.computerUseTool();
-const screenshot = await vm.chromium.computerUse({ action: "screenshot" });
+const computer = await vm.chromium.anthropic.computerUseTool();
+const screenshot = await vm.chromium.anthropic.computerUse({
+  action: "screenshot",
+});
 
 console.log(`VM: ${vmId}`);
 console.log(`SSH: npx freestyle vm ssh ${vmId}`);
