@@ -20,8 +20,8 @@ const { vmId, vm } = await freestyle.vms.create(
   })
 );
 
-const vnc = await vm.chromium.routeVnc();
-const watch = await vm.chromium.routeVnc({ viewOnly: true });
+const display = await vm.chromium.routeDisplay();
+const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 const cdp = await vm.chromium.route();
 const browser = await vm.chromium.cdpJsonVersion();
 const computer = await vm.chromium.computerUseTool();
@@ -29,8 +29,9 @@ const screenshot = await vm.chromium.computerUse({ action: "screenshot" });
 
 console.log(`VM: ${vmId}`);
 console.log(`SSH: npx freestyle vm ssh ${vmId}`);
-console.log(`VNC: ${vnc.url}`);
+console.log(`Display: ${display.url}`);
 console.log(`Watch: ${watch.url}`);
+console.log(`Display transport: ${display.transport}`);
 console.log(`CDP: ${cdp.url}`);
 console.log(`Browser: ${browser.Browser ?? "unknown"}`);
 console.log(

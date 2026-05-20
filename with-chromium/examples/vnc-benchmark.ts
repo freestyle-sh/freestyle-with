@@ -1,7 +1,11 @@
 import "dotenv/config";
 import { freestyle, VmSpec } from "freestyle";
-import { TigerVncBackend, X11VncBackend } from "@freestyle-sh/with-vnc";
-import type { VncBackendDefinition } from "@freestyle-sh/with-type-vnc";
+import {
+  NoVncDisplayBackend,
+  TigerVncBackend,
+  type VncBackendDefinition,
+  X11VncBackend,
+} from "@freestyle-sh/with-vnc";
 import { VmChromium } from "../src/index.ts";
 
 type BenchmarkMetrics = {
@@ -322,8 +326,7 @@ const runBackend = async (
         with: {
           chromium: new VmChromium({
             mode: "headed",
-            enableVnc: true,
-            vncBackend: backend,
+            displayBackend: new NoVncDisplayBackend({ vncBackend: backend }),
             homepage: animatedPage,
             screen,
           }),
@@ -343,13 +346,14 @@ const runBackend = async (
       );
     }
 
+    const vncPort = vm.chromium.displayPorts().vnc;
     const rfbReady = await vm.exec({
-      command: waitForPortCommand(vm.chromium.vncPort()),
+      command: waitForPortCommand(vncPort),
     });
     if (rfbReady.statusCode !== 0) {
       const logs = await vm.chromium.logs({ unit: "chromium-vnc", lines: 80 });
       throw new Error(
-        `VNC backend did not open port ${vm.chromium.vncPort()} for ${
+        `VNC backend did not open port ${vncPort} for ${
           backend.name
         }:\n${rfbReady.stdout ?? ""}\n${rfbReady.stderr ?? ""}\n${logs.join(
           "\n",
@@ -358,7 +362,7 @@ const runBackend = async (
     }
 
     const result = await vm.exec({
-      command: benchmarkCommand(vm.chromium.vncPort()),
+      command: benchmarkCommand(vncPort),
     });
     if (result.statusCode !== 0) {
       throw new Error(

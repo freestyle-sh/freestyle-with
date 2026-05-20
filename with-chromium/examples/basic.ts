@@ -13,8 +13,8 @@ const { vm } = await freestyle.vms.create(
   }),
 );
 
-const vnc = await vm.chromium.routeVnc();
+const display = await vm.chromium.routeDisplay();
 const cdp = await vm.chromium.browserWSEndpoint({ route: true });
 const screenshot = await vm.chromium.screenshot();
 
-console.log({ vnc, cdp, screenshot: screenshot.mimeType });
+console.log({ display, cdp, screenshot: screenshot.mimeType });

@@ -18,4 +18,5 @@ packages:
   - "with-deno"
   - "with-chromium"
   - "with-vnc"
+  - "with-xpra"
   - "types/*"

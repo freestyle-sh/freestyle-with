@@ -247,7 +247,7 @@ const { vmId, vm } = await freestyle.vms.create(
   }),
 );
 
-const watch = await vm.chromium.routeVnc({ viewOnly: true });
+const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 const browserWSEndpoint = await vm.chromium.browserWSEndpoint({ route: true });
 
 console.log(`VM: ${vmId}`);

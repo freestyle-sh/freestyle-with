@@ -1,6 +1,6 @@
 # @freestyle-sh/with-chromium
 
-Chromium for [Freestyle](https://freestyle.sh) VMs with Chrome DevTools Protocol, headed desktop mode, noVNC routing, and simple computer-use actions.
+Chromium for [Freestyle](https://freestyle.sh) VMs with Chrome DevTools Protocol, headed desktop mode, display routing, VNC/noVNC support, and simple computer-use actions.
 
 ## Installation
 
@@ -22,10 +22,10 @@ const { vm } = await freestyle.vms.create(
   }),
 );
 
-const vnc = await vm.chromium.routeVnc();
-console.log(vnc.url);
+const display = await vm.chromium.routeDisplay();
+console.log(display.url);
 
-const watch = await vm.chromium.routeVnc({ viewOnly: true });
+const watch = await vm.chromium.routeDisplay({ viewOnly: true });
 console.log(watch.url);
 
 const tool = await vm.chromium.computerUseTool();
@@ -62,12 +62,9 @@ console.log(ws);
 | `screen` | `{ width?: number; height?: number; depth?: number }` | `1280x720x24` | Virtual display size. |
 | `homepage` | `string` | `"about:blank"` | Page opened at startup. |
 | `extraArgs` | `string[]` | `[]` | Additional Chromium command-line flags. |
-| `enableVnc` | `boolean` | `true` in headed mode | Start a VNC backend and noVNC services. |
-| `vncBackend` | `VncBackendDefinition` | `new TigerVncBackend()` | VNC backend implementation. Use `new X11VncBackend()` to opt into x11vnc. |
-| `vncPort` | `number` | `5900` | Raw VNC port inside the VM. |
-| `vncViewOnlyPort` | `number` | `vncPort + 1` | Server-enforced view-only VNC port inside the VM. |
-| `noVncPort` | `number` | `6080` | HTTP noVNC port used for Freestyle domain routing. |
-| `noVncViewOnlyPort` | `number` | `noVncPort + 1` | HTTP noVNC port for view-only Freestyle routing. |
+| `enableDisplay` | `boolean` | `true` in headed mode | Start the configured display backend. |
+| `displayBackend` | `DisplayBackendDefinition` | `new NoVncDisplayBackend({ vncBackend: new TigerVncBackend() })` | Display backend exposed by `routeDisplay()`. |
+| `displayPorts` | `Record<string, number>` | `{ vnc: 5900, vncViewOnly: 5901, web: 6080, webViewOnly: 6081 }` | Named internal ports supplied to the display backend. |
 
 ## API
 
@@ -79,26 +76,74 @@ console.log(ws);
 - `vm.chromium.cdpJsonVersion()`
 - `vm.chromium.browserWSEndpoint({ route?, domain? })`
 
-### VNC
+### Display
 
-- `vm.chromium.vncPort()`
-- `vm.chromium.noVncPort()`
-- `vm.chromium.routeVnc({ domain?, path?, viewOnly? })`
+- `vm.chromium.displayPorts()`
+- `vm.chromium.routeDisplay({ domain?, path?, viewOnly? })`
 
-Chromium uses TigerVNC by default for headed VNC sessions. `routeVnc()` returns
-the default interactive noVNC route. `routeVnc({ viewOnly: true })` routes a
-separate server-enforced view-only VNC service.
-
-VNC backends are pluggable objects with `name`, `aptDeps`, `installCheck`, and
-`command()` fields. To override the default backend, import one from
-`@freestyle-sh/with-vnc`:
+Display backends describe the web transport, system services, routes, and
+capabilities for a headed session. The default display backend is noVNC over
+TigerVNC:
 
 ```typescript
-import { X11VncBackend } from "@freestyle-sh/with-vnc";
+import { NoVncDisplayBackend, X11VncBackend } from "@freestyle-sh/with-vnc";
 
 new VmChromium({
   mode: "headed",
-  vncBackend: new X11VncBackend(),
+  displayBackend: new NoVncDisplayBackend({
+    vncBackend: new X11VncBackend(),
+  }),
+});
+```
+
+`routeDisplay()` returns `kind`, `transport`, and `capabilities`, so future
+backends like Xpra or WebRTC can expose audio support without changing the
+consumer route shape. noVNC routes currently report `audio: false`.
+
+For audio, use the Xpra display backend:
+
+```typescript
+import { XpraDisplayBackend } from "@freestyle-sh/with-xpra";
+
+new VmChromium({
+  mode: "headed",
+  user: "browser",
+  displayBackend: new XpraDisplayBackend(),
+  extraArgs: ["--autoplay-policy=no-user-gesture-required"],
+});
+```
+
+Xpra owns the desktop session and sets the PulseAudio environment used by
+Chromium. Install `@freestyle-sh/with-xpra` alongside `with-chromium`; its
+route reports `transport: "xpra-html5"` and `audio: true`. Use a regular VM
+user for this backend; PulseAudio is not reliable when Xpra runs as root.
+This is the display backend to use when audio matters, but its HTML5 client can
+have imperfect mouse alignment in some browser viewport and scaling states.
+Prefer the default noVNC display backend for workflows that need precise pointer
+interaction and do not need audio. Pass
+`new XpraDisplayBackend({ resizeDisplay: "1280x800" })` only for fixed-viewport
+setups; fixed display sizes can make pointer alignment worse if the web client
+scales the canvas.
+
+### VNC Display Backends
+
+Chromium uses TigerVNC through noVNC by default for headed display sessions.
+`routeDisplay()` returns the default interactive noVNC route.
+`routeDisplay({ viewOnly: true })` routes a separate server-enforced
+view-only noVNC service.
+
+VNC backends are pluggable objects with `name`, `aptDeps`, `installCheck`, and
+`command()` fields. Wrap them in `NoVncDisplayBackend` to use them as Chromium
+display backends:
+
+```typescript
+import { NoVncDisplayBackend, X11VncBackend } from "@freestyle-sh/with-vnc";
+
+new VmChromium({
+  mode: "headed",
+  displayBackend: new NoVncDisplayBackend({
+    vncBackend: new X11VncBackend(),
+  }),
 });
 ```
 

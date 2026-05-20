@@ -34,13 +34,14 @@ import type {
   VmComputerUseInstance,
 } from "@freestyle-sh/with-type-computer-use";
 import type {
-  VncBackendDefinition,
-  VmVnc,
-  VmVncInstance,
-  VncRoute,
-  VncRouteOptions,
-} from "@freestyle-sh/with-type-vnc";
-import { TigerVncBackend } from "@freestyle-sh/with-vnc";
+  DisplayBackendDefinition,
+  DisplayBackendPorts,
+  DisplayRoute,
+  DisplayRouteOptions,
+  VmDisplay,
+  VmDisplayInstance,
+} from "@freestyle-sh/with-type-display";
+import { NoVncDisplayBackend } from "@freestyle-sh/with-vnc";
 
 export type ChromiumMode = "headless" | "headed";
 
@@ -50,7 +51,7 @@ export type ChromiumScreen = {
   depth?: number;
 };
 
-export type ChromiumVncBackend = VncBackendDefinition;
+export type ChromiumDisplayBackend = DisplayBackendDefinition;
 
 export type VmChromiumOptions = {
   /** Launch Chromium with a visible X11 display or Chrome's native headless mode. */
@@ -73,18 +74,12 @@ export type VmChromiumOptions = {
   extraArgs?: string[];
   /** Environment passed to Chromium. */
   env?: Record<string, string>;
-  /** Start a VNC backend and noVNC in headed mode (default: true in headed mode). */
-  enableVnc?: boolean;
-  /** VNC server implementation used by noVNC routes (default: new TigerVncBackend()). */
-  vncBackend?: ChromiumVncBackend;
-  /** Raw VNC port used inside the VM (default: 5900). */
-  vncPort?: number;
-  /** Raw view-only VNC port used inside the VM (default: vncPort + 1). */
-  vncViewOnlyPort?: number;
-  /** noVNC/websockify HTTP port used for Freestyle routing (default: 6080). */
-  noVncPort?: number;
-  /** View-only noVNC/websockify HTTP port (default: noVncPort + 1). */
-  noVncViewOnlyPort?: number;
+  /** Start a display backend in headed mode (default: true in headed mode). */
+  enableDisplay?: boolean;
+  /** Display transport/backend exposed by routeDisplay() (default: noVNC over TigerVNC). */
+  displayBackend?: ChromiumDisplayBackend;
+  /** Named internal ports supplied to the display backend. */
+  displayPorts?: DisplayBackendPorts;
 };
 
 export type VmChromiumResolvedOptions = {
@@ -98,12 +93,9 @@ export type VmChromiumResolvedOptions = {
   homepage: string;
   extraArgs: string[];
   env: Record<string, string>;
-  enableVnc: boolean;
-  vncBackend: ChromiumVncBackend;
-  vncPort: number;
-  vncViewOnlyPort: number;
-  noVncPort: number;
-  noVncViewOnlyPort: number;
+  enableDisplay: boolean;
+  displayBackend: ChromiumDisplayBackend;
+  displayPorts: DisplayBackendPorts;
 };
 
 const DEFAULT_SCREEN: Required<ChromiumScreen> = {
@@ -123,7 +115,7 @@ export class VmChromium
   extends VmWith<VmChromiumInstance>
   implements
     VmBrowser<VmBrowserInstance>,
-    VmVnc<VmVncInstance>,
+    VmDisplay<VmDisplayInstance>,
     VmComputerUse<VmComputerUseInstance>
 {
   options: VmChromiumResolvedOptions;
@@ -131,27 +123,26 @@ export class VmChromium
   constructor(options?: VmChromiumOptions) {
     super();
 
-    const mode = options?.mode ?? (options?.enableVnc ? "headed" : "headless");
-    const enableVnc = options?.enableVnc ?? mode === "headed";
-    const vncBackend = options?.vncBackend ?? new TigerVncBackend();
+    const requestedDisplay = options?.enableDisplay;
+    const mode = options?.mode ?? (requestedDisplay ? "headed" : "headless");
+    const enableDisplay = requestedDisplay ?? mode === "headed";
+    const displayBackend = options?.displayBackend ?? new NoVncDisplayBackend();
+    const displayPorts = {
+      vnc: 5900,
+      vncViewOnly: 5901,
+      web: 6080,
+      webViewOnly: 6081,
+      ...(options?.displayPorts ?? {}),
+    };
     const user = options?.user ?? "root";
     const homeDir = user === "root" ? "/root" : `/home/${user}`;
 
-    if (mode === "headless" && enableVnc) {
-      throw new Error("VmChromium VNC requires mode: \"headed\".");
+    if (mode === "headless" && enableDisplay) {
+      throw new Error("VmChromium display routing requires mode: \"headed\".");
     }
 
-    const vncPort = options?.vncPort ?? 5900;
-    const vncViewOnlyPort = options?.vncViewOnlyPort ?? vncPort + 1;
-    const noVncPort = options?.noVncPort ?? 6080;
-    const noVncViewOnlyPort = options?.noVncViewOnlyPort ?? noVncPort + 1;
-
-    if (enableVnc && vncPort === vncViewOnlyPort) {
-      throw new Error("VmChromium VNC ports must be distinct.");
-    }
-
-    if (enableVnc && noVncPort === noVncViewOnlyPort) {
-      throw new Error("VmChromium noVNC ports must be distinct.");
+    if (enableDisplay) {
+      this.validateDisplayPorts(displayPorts);
     }
 
     this.options = {
@@ -170,16 +161,17 @@ export class VmChromium
       homepage: options?.homepage ?? "about:blank",
       extraArgs: options?.extraArgs ?? [],
       env: options?.env ?? {},
-      enableVnc,
-      vncBackend,
-      vncPort,
-      vncViewOnlyPort,
-      noVncPort,
-      noVncViewOnlyPort,
+      enableDisplay,
+      displayBackend,
+      displayPorts,
     };
   }
 
   override configureSnapshotSpec(spec: VmSpec): VmSpec {
+    if (this.options.displayBackend.kind === "xpra") {
+      return spec;
+    }
+
     return this.composeChromiumSpec(spec);
   }
 
@@ -199,6 +191,13 @@ export class VmChromium
     return this.options.mode === "headed";
   }
 
+  private usesManagedX11Display(): boolean {
+    return (
+      this.needsDisplay() &&
+      (!this.options.enableDisplay || !this.options.displayBackend.ownsDisplay)
+    );
+  }
+
   private aptDeps(): string[] {
     return [
       "ca-certificates",
@@ -210,21 +209,31 @@ export class VmChromium
         ? [
             "dbus-x11",
             "imagemagick",
-            "openbox",
             "x11-utils",
             "xdotool",
-            "xvfb",
+            ...(this.usesManagedX11Display() ? ["openbox", "xvfb"] : []),
           ]
         : []),
-      ...(this.options.enableVnc
-        ? ["novnc", "websockify", ...this.options.vncBackend.aptDeps]
-        : []),
+      ...(this.options.enableDisplay ? this.options.displayBackend.aptDeps : []),
     ];
   }
 
   private composeChromiumSpec(spec: VmSpec): VmSpec {
-    const { enableVnc } = this.options;
-    const needsDisplay = this.needsDisplay();
+    const { enableDisplay } = this.options;
+    const usesManagedX11Display = this.usesManagedX11Display();
+    const displayReadyServiceName = this.displayReadyServiceName();
+    const displayServices = enableDisplay
+      ? this.options.displayBackend.services({
+          display: this.options.display,
+          displayServiceName: usesManagedX11Display
+            ? "chromium-xvfb.service"
+            : undefined,
+          ports: this.displayBackendPorts(),
+          screen: this.options.screen,
+          servicePrefix: "chromium",
+          user: this.options.user,
+        })
+      : [];
 
     const services = [
       {
@@ -234,7 +243,7 @@ export class VmChromium
         bash: this.installCheckScript(),
         timeoutSec: 60,
       },
-      ...(needsDisplay
+      ...(usesManagedX11Display
         ? [
             {
               name: "chromium-xvfb",
@@ -274,11 +283,11 @@ export class VmChromium
           policy: "always" as const,
           restartSec: 2,
         },
-        after: needsDisplay
-          ? ["chromium-openbox.service"]
+        after: displayReadyServiceName
+          ? [displayReadyServiceName]
           : [this.installServiceName()],
-        requires: needsDisplay
-          ? ["chromium-xvfb.service"]
+        requires: displayReadyServiceName
+          ? [displayReadyServiceName]
           : [this.installServiceName()],
       },
       {
@@ -292,62 +301,32 @@ export class VmChromium
         after: ["chromium.service"],
         requires: ["chromium.service"],
       },
-      ...(enableVnc
-        ? [
-            {
-              name: "chromium-vnc",
-              mode: "service" as const,
-              exec: [this.x11vncCommand()],
-              restartPolicy: {
-                policy: "always" as const,
-                restartSec: 2,
-              },
-              after: ["chromium-xvfb.service"],
-              requires: ["chromium-xvfb.service"],
-            },
-            {
-              name: "chromium-novnc",
-              mode: "service" as const,
-              exec: [this.noVncCommand()],
-              restartPolicy: {
-                policy: "always" as const,
-                restartSec: 2,
-              },
-              after: ["chromium-vnc.service"],
-              requires: ["chromium-vnc.service"],
-            },
-            {
-              name: "chromium-vnc-viewonly",
-              mode: "service" as const,
-              exec: [this.x11vncCommand({ viewOnly: true })],
-              restartPolicy: {
-                policy: "always" as const,
-                restartSec: 2,
-              },
-              after: ["chromium-xvfb.service"],
-              requires: ["chromium-xvfb.service"],
-            },
-            {
-              name: "chromium-novnc-viewonly",
-              mode: "service" as const,
-              exec: [this.noVncCommand({ viewOnly: true })],
-              restartPolicy: {
-                policy: "always" as const,
-                restartSec: 2,
-              },
-              after: ["chromium-vnc-viewonly.service"],
-              requires: ["chromium-vnc-viewonly.service"],
-            },
-          ]
-        : []),
+      ...displayServices.map((service) => ({
+        name: service.name,
+        mode: "service" as const,
+        exec: [service.exec],
+        env: service.env,
+        user: service.user,
+        restartPolicy: {
+          policy: "always" as const,
+          restartSec: 2,
+        },
+        after: service.after,
+        requires: service.requires,
+      })),
     ];
 
     return this.composeSpecs(
       spec,
       new VmSpec({
         aptDeps: this.aptDeps(),
+        ...(this.options.user === "root"
+          ? {}
+          : { users: [{ name: this.options.user }] }),
         additionalFiles: {
-          ...this.options.vncBackend.additionalFiles,
+          ...(this.options.enableDisplay
+            ? this.options.displayBackend.additionalFiles
+            : undefined),
           "/opt/run-chromium.sh": {
             content: this.chromiumRunScript(),
           },
@@ -363,32 +342,55 @@ export class VmChromium
   }
 
   private installCheckScript(): string {
+    const userSetup =
+      this.options.user === "root"
+        ? ""
+        : `
+id ${this.shellEscape(this.options.user)}
+install -d -m 755 -o ${this.shellEscape(this.options.user)} ${this.shellEscape(this.homeDir())}
+`;
     const displayChecks = this.needsDisplay()
       ? `
-command -v Xvfb
-command -v openbox
 command -v import
 command -v xdpyinfo
 command -v xdotool
+${this.usesManagedX11Display() ? "command -v Xvfb\ncommand -v openbox\n" : ""}
 `
       : "";
-    const vncChecks = this.options.enableVnc
+    const backendChecks = this.options.enableDisplay
       ? `
-${this.vncInstallCheck()}
-command -v websockify
-test -d /usr/share/novnc
+${this.displayInstallCheck()}
 `
       : "";
 
     return `set -e
+${userSetup}
 test -x ${this.shellEscape(CHROMIUM_BINARY)}
 command -v python3
 ${CHROMIUM_BINARY} --version
-${displayChecks}${vncChecks}`;
+${displayChecks}${backendChecks}`;
   }
 
-  private vncInstallCheck(): string {
-    return this.options.vncBackend.installCheck;
+  private displayInstallCheck(): string {
+    return this.options.displayBackend.installCheck;
+  }
+
+  private displayReadyServiceName(): string | undefined {
+    if (!this.needsDisplay()) {
+      return undefined;
+    }
+
+    if (this.usesManagedX11Display()) {
+      return "chromium-openbox.service";
+    }
+
+    return this.options.displayBackend.readyServiceName?.({
+      display: this.options.display,
+      ports: this.displayBackendPorts(),
+      screen: this.options.screen,
+      servicePrefix: "chromium",
+      user: this.options.user,
+    });
   }
 
   private xvfbCommand(): string {
@@ -405,35 +407,33 @@ ${displayChecks}${vncChecks}`;
     ].join(" ");
   }
 
-  private x11vncCommand(options: { viewOnly?: boolean } = {}): string {
-    const { display, vncPort, vncViewOnlyPort } = this.options;
-    return this.options.vncBackend.command({
-      display,
-      vncPort,
-      vncViewOnlyPort,
-      viewOnly: options.viewOnly,
-    });
-  }
-
-  private noVncCommand(options: { viewOnly?: boolean } = {}): string {
-    const { noVncPort, noVncViewOnlyPort, vncPort, vncViewOnlyPort } =
-      this.options;
-    return [
-      "websockify",
-      "--web=/usr/share/novnc",
-      `0.0.0.0:${options.viewOnly ? noVncViewOnlyPort : noVncPort}`,
-      `127.0.0.1:${options.viewOnly ? vncViewOnlyPort : vncPort}`,
-    ].join(" ");
+  displayBackendPorts(): DisplayBackendPorts {
+    return this.options.displayPorts;
   }
 
   private chromiumEnv(): Record<string, string> {
+    const displayEnv =
+      this.needsDisplay() && this.options.enableDisplay
+        ? this.options.displayBackend.applicationEnv?.({
+            display: this.options.display,
+            ports: this.displayBackendPorts(),
+            screen: this.options.screen,
+            servicePrefix: "chromium",
+            user: this.options.user,
+          })
+        : undefined;
+
     return {
-      HOME:
-        this.options.user === "root" ? "/root" : `/home/${this.options.user}`,
+      HOME: this.homeDir(),
       XDG_RUNTIME_DIR: "/tmp/freestyle-chromium-runtime",
       ...(this.needsDisplay() ? { DISPLAY: this.options.display } : {}),
+      ...displayEnv,
       ...this.options.env,
     };
+  }
+
+  private homeDir(): string {
+    return this.options.user === "root" ? "/root" : `/home/${this.options.user}`;
   }
 
   private chromiumRunScript(): string {
@@ -464,12 +464,39 @@ ${displayChecks}${vncChecks}`;
         return `export ${key}=${this.shellEscape(value)}`;
       })
       .join("\n");
+    const waitForDisplay =
+      this.options.mode === "headed"
+        ? `
+for attempt in {1..60}; do
+  if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+xdpyinfo -display "$DISPLAY" >/dev/null
+`
+        : "";
+    const waitForPulse =
+      this.options.mode === "headed"
+        ? `
+if [[ "\${PULSE_SERVER:-}" == unix:* ]]; then
+  pulse_socket="\${PULSE_SERVER#unix:}"
+  for attempt in {1..60}; do
+    if [[ -S "$pulse_socket" ]]; then
+      break
+    fi
+    sleep 1
+  done
+fi
+`
+        : "";
 
     return `#!/bin/bash
 set -e
 ${envExports}
 mkdir -p "$XDG_RUNTIME_DIR" ${this.shellEscape(userDataDir)}
 chmod 700 "$XDG_RUNTIME_DIR"
+${waitForDisplay}${waitForPulse}
 exec ${args.map((arg) => this.shellEscape(arg)).join(" ")}
 `;
   }
@@ -573,11 +600,19 @@ asyncio.run(main())
       throw new Error(`Invalid env var name: ${key}`);
     }
   }
+
+  private validateDisplayPorts(ports: DisplayBackendPorts): void {
+    for (const [name, port] of Object.entries(ports)) {
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new Error(`Invalid display port ${name}: ${port}.`);
+      }
+    }
+  }
 }
 
 export class VmChromiumInstance
   extends VmWithInstance
-  implements VmBrowserInstance, VmVncInstance, VmComputerUseInstance
+  implements VmBrowserInstance, VmDisplayInstance, VmComputerUseInstance
 {
   builder: VmChromium;
 
@@ -594,12 +629,8 @@ export class VmChromiumInstance
     return this.builder.options.cdpRoutePort;
   }
 
-  vncPort(): number {
-    return this.builder.options.vncPort;
-  }
-
-  noVncPort(): number {
-    return this.builder.options.noVncPort;
+  displayPorts(): DisplayBackendPorts {
+    return this.builder.displayBackendPorts();
   }
 
   async computerUseTool(
@@ -825,31 +856,35 @@ export class VmChromiumInstance
     };
   }
 
-  async routeVnc(options: VncRouteOptions = {}): Promise<VncRoute> {
-    this.ensureVncEnabled();
+  async routeDisplay(options: DisplayRouteOptions = {}): Promise<DisplayRoute> {
+    this.ensureDisplayEnabled();
 
     const viewOnly = options.viewOnly ?? false;
-    const port = viewOnly
-      ? this.builder.options.noVncViewOnlyPort
-      : this.noVncPort();
+    const backend = this.builder.options.displayBackend;
+    const target = backend.routeTarget({
+      path: options.path,
+      ports: this.builder.displayBackendPorts(),
+      viewOnly,
+    });
     const domain =
-      options.domain ?? `${crypto.randomUUID()}-chromium-vnc.style.dev`;
+      options.domain ?? `${crypto.randomUUID()}-chromium-display.style.dev`;
     await this.freestyle().domains.mappings.create({
       domain,
       vmId: this.vm.vmId,
-      vmPort: port,
+      vmPort: target.port,
     });
 
-    const path = this.noVncPath(
-      options.path ?? "/vnc.html?autoconnect=1&resize=remote",
-      viewOnly,
-    );
+    const path = target.path.startsWith("/") ? target.path : `/${target.path}`;
     return {
+      backend: backend.name,
+      capabilities: backend.capabilities,
       domain,
-      port,
-      viewOnly,
-      backend: this.builder.options.vncBackend.name,
-      url: `https://${domain}${path.startsWith("/") ? path : `/${path}`}`,
+      kind: backend.kind,
+      path,
+      port: target.port,
+      transport: backend.transport,
+      url: `https://${domain}${path}`,
+      viewOnly: target.viewOnly,
     };
   }
 
@@ -1060,16 +1095,6 @@ export class VmChromiumInstance
     });
   }
 
-  private noVncPath(path: string, viewOnly: boolean): string {
-    if (!viewOnly) {
-      return path;
-    }
-
-    const url = new URL(path, "https://vnc.local");
-    url.searchParams.set("view_only", "1");
-    return `${url.pathname}${url.search}${url.hash}`;
-  }
-
   private displayNumber(): number | null {
     const match = this.builder.options.display.match(/^:(\d+)(?:\.\d+)?$/);
     return match ? Number(match[1]) : null;
@@ -1188,10 +1213,10 @@ export class VmChromiumInstance
     }
   }
 
-  private ensureVncEnabled(): void {
-    if (!this.builder.options.enableVnc) {
+  private ensureDisplayEnabled(): void {
+    if (!this.builder.options.enableDisplay) {
       throw new Error(
-        "Chromium VNC routing requires VmChromium({ mode: \"headed\", enableVnc: true }).",
+        "Chromium display routing requires VmChromium({ mode: \"headed\", enableDisplay: true }).",
       );
     }
   }
