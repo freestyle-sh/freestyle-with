@@ -13,6 +13,7 @@ npm install @freestyle-sh/with-chromium freestyle
 ```typescript
 import { freestyle, VmSpec } from "freestyle";
 import { VmChromium } from "@freestyle-sh/with-chromium";
+import { TigerVncBackend } from "@freestyle-sh/with-vnc";
 
 const { vm } = await freestyle.vms.create(
   new VmSpec({
@@ -62,7 +63,8 @@ console.log(ws);
 | `screen` | `{ width?: number; height?: number; depth?: number }` | `1280x720x24` | Virtual display size. |
 | `homepage` | `string` | `"about:blank"` | Page opened at startup. |
 | `extraArgs` | `string[]` | `[]` | Additional Chromium command-line flags. |
-| `enableVnc` | `boolean` | `true` in headed mode | Start x11vnc and noVNC services. |
+| `enableVnc` | `boolean` | `true` in headed mode | Start a VNC backend and noVNC services. |
+| `vncBackend` | `VncBackendDefinition` | `new X11VncBackend()` | VNC backend implementation. Use `new TigerVncBackend()` to benchmark or run TigerVNC. |
 | `vncPort` | `number` | `5900` | Raw VNC port inside the VM. |
 | `vncViewOnlyPort` | `number` | `vncPort + 1` | Server-enforced view-only VNC port inside the VM. |
 | `noVncPort` | `number` | `6080` | HTTP noVNC port used for Freestyle domain routing. |
@@ -86,6 +88,17 @@ console.log(ws);
 
 `routeVnc({ viewOnly: true })` routes a separate server-enforced view-only VNC
 service. The default `routeVnc()` remains interactive.
+
+VNC backends are pluggable objects with `name`, `aptDeps`, `installCheck`, and
+`command()` fields. `@freestyle-sh/with-vnc` includes `X11VncBackend` and
+`TigerVncBackend`:
+
+```typescript
+new VmChromium({
+  mode: "headed",
+  vncBackend: new TigerVncBackend(),
+});
+```
 
 ### Computer Use
 

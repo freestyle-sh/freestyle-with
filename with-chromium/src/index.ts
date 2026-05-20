@@ -34,11 +34,13 @@ import type {
   VmComputerUseInstance,
 } from "@freestyle-sh/with-type-computer-use";
 import type {
+  VncBackendDefinition,
   VmVnc,
   VmVncInstance,
   VncRoute,
   VncRouteOptions,
 } from "@freestyle-sh/with-type-vnc";
+import { X11VncBackend } from "@freestyle-sh/with-vnc";
 
 export type ChromiumMode = "headless" | "headed";
 
@@ -47,6 +49,8 @@ export type ChromiumScreen = {
   height?: number;
   depth?: number;
 };
+
+export type ChromiumVncBackend = VncBackendDefinition;
 
 export type VmChromiumOptions = {
   /** Launch Chromium with a visible X11 display or Chrome's native headless mode. */
@@ -69,8 +73,10 @@ export type VmChromiumOptions = {
   extraArgs?: string[];
   /** Environment passed to Chromium. */
   env?: Record<string, string>;
-  /** Start x11vnc and noVNC in headed mode (default: true in headed mode). */
+  /** Start a VNC backend and noVNC in headed mode (default: true in headed mode). */
   enableVnc?: boolean;
+  /** VNC server implementation used by noVNC routes (default: new X11VncBackend()). */
+  vncBackend?: ChromiumVncBackend;
   /** Raw VNC port used inside the VM (default: 5900). */
   vncPort?: number;
   /** Raw view-only VNC port used inside the VM (default: vncPort + 1). */
@@ -93,6 +99,7 @@ export type VmChromiumResolvedOptions = {
   extraArgs: string[];
   env: Record<string, string>;
   enableVnc: boolean;
+  vncBackend: ChromiumVncBackend;
   vncPort: number;
   vncViewOnlyPort: number;
   noVncPort: number;
@@ -108,6 +115,10 @@ const DEFAULT_SCREEN: Required<ChromiumScreen> = {
 const CHROMIUM_BINARY = "/usr/bin/chromium";
 const COMPUTER_USE_SCREENSHOT_DELAY_MS = 2000;
 
+const shellEscape = (value: string): string => {
+  return `'${value.replace(/'/g, "'\\''")}'`;
+};
+
 export class VmChromium
   extends VmWith<VmChromiumInstance>
   implements
@@ -122,6 +133,7 @@ export class VmChromium
 
     const mode = options?.mode ?? (options?.enableVnc ? "headed" : "headless");
     const enableVnc = options?.enableVnc ?? mode === "headed";
+    const vncBackend = options?.vncBackend ?? new X11VncBackend();
     const user = options?.user ?? "root";
     const homeDir = user === "root" ? "/root" : `/home/${user}`;
 
@@ -159,6 +171,7 @@ export class VmChromium
       extraArgs: options?.extraArgs ?? [],
       env: options?.env ?? {},
       enableVnc,
+      vncBackend,
       vncPort,
       vncViewOnlyPort,
       noVncPort,
@@ -203,7 +216,9 @@ export class VmChromium
             "xvfb",
           ]
         : []),
-      ...(this.options.enableVnc ? ["novnc", "websockify", "x11vnc"] : []),
+      ...(this.options.enableVnc
+        ? ["novnc", "websockify", ...this.options.vncBackend.aptDeps]
+        : []),
     ];
   }
 
@@ -280,7 +295,7 @@ export class VmChromium
       ...(enableVnc
         ? [
             {
-              name: "chromium-x11vnc",
+              name: "chromium-vnc",
               mode: "service" as const,
               exec: [this.x11vncCommand()],
               restartPolicy: {
@@ -298,11 +313,11 @@ export class VmChromium
                 policy: "always" as const,
                 restartSec: 2,
               },
-              after: ["chromium-x11vnc.service"],
-              requires: ["chromium-x11vnc.service"],
+              after: ["chromium-vnc.service"],
+              requires: ["chromium-vnc.service"],
             },
             {
-              name: "chromium-x11vnc-viewonly",
+              name: "chromium-vnc-viewonly",
               mode: "service" as const,
               exec: [this.x11vncCommand({ viewOnly: true })],
               restartPolicy: {
@@ -320,8 +335,8 @@ export class VmChromium
                 policy: "always" as const,
                 restartSec: 2,
               },
-              after: ["chromium-x11vnc-viewonly.service"],
-              requires: ["chromium-x11vnc-viewonly.service"],
+              after: ["chromium-vnc-viewonly.service"],
+              requires: ["chromium-vnc-viewonly.service"],
             },
           ]
         : []),
@@ -332,6 +347,7 @@ export class VmChromium
       new VmSpec({
         aptDeps: this.aptDeps(),
         additionalFiles: {
+          ...this.options.vncBackend.additionalFiles,
           "/opt/run-chromium.sh": {
             content: this.chromiumRunScript(),
           },
@@ -358,7 +374,7 @@ command -v xdotool
       : "";
     const vncChecks = this.options.enableVnc
       ? `
-command -v x11vnc
+${this.vncInstallCheck()}
 command -v websockify
 test -d /usr/share/novnc
 `
@@ -369,6 +385,10 @@ test -x ${this.shellEscape(CHROMIUM_BINARY)}
 command -v python3
 ${CHROMIUM_BINARY} --version
 ${displayChecks}${vncChecks}`;
+  }
+
+  private vncInstallCheck(): string {
+    return this.options.vncBackend.installCheck;
   }
 
   private xvfbCommand(): string {
@@ -387,19 +407,12 @@ ${displayChecks}${vncChecks}`;
 
   private x11vncCommand(options: { viewOnly?: boolean } = {}): string {
     const { display, vncPort, vncViewOnlyPort } = this.options;
-    return [
-      "x11vnc",
-      "-display",
-      this.shellEscape(display),
-      "-forever",
-      "-shared",
-      "-nopw",
-      "-listen",
-      "0.0.0.0",
-      ...(options.viewOnly ? ["-viewonly"] : []),
-      "-rfbport",
-      String(options.viewOnly ? vncViewOnlyPort : vncPort),
-    ].join(" ");
+    return this.options.vncBackend.command({
+      display,
+      vncPort,
+      vncViewOnlyPort,
+      viewOnly: options.viewOnly,
+    });
   }
 
   private noVncCommand(options: { viewOnly?: boolean } = {}): string {
@@ -552,7 +565,7 @@ asyncio.run(main())
   }
 
   private shellEscape(value: string): string {
-    return `'${value.replace(/'/g, "'\\''")}'`;
+    return shellEscape(value);
   }
 
   private validateEnvKey(key: string): void {
@@ -835,6 +848,7 @@ export class VmChromiumInstance
       domain,
       port,
       viewOnly,
+      backend: this.builder.options.vncBackend.name,
       url: `https://${domain}${path.startsWith("/") ? path : `/${path}`}`,
     };
   }
@@ -1199,6 +1213,6 @@ export class VmChromiumInstance
   }
 
   private shellEscape(value: string): string {
-    return `'${value.replace(/'/g, "'\\''")}'`;
+    return shellEscape(value);
   }
 }

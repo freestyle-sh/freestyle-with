@@ -17,4 +17,5 @@ packages:
   - "with-vscode"
   - "with-deno"
   - "with-chromium"
+  - "with-vnc"
   - "types/*"

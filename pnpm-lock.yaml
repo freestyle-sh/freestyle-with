@@ -102,6 +102,9 @@ importers:
       '@freestyle-sh/with-type-vnc':
         specifier: workspace:^
         version: link:../types/with-type-vnc
+      '@freestyle-sh/with-vnc':
+        specifier: workspace:^
+        version: link:../with-vnc
       freestyle:
         specifier: ^0.1.46
         version: 0.1.46
@@ -295,6 +298,19 @@ importers:
       freestyle:
         specifier: ^0.1.46
         version: 0.1.46
+
+  with-vnc:
+    dependencies:
+      '@freestyle-sh/with-type-vnc':
+        specifier: workspace:^
+        version: link:../types/with-type-vnc
+    devDependencies:
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   with-vscode:
     dependencies:

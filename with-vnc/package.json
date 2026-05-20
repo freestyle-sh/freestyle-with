@@ -1,17 +1,12 @@
 {
-  "name": "@freestyle-sh/with-chromium",
+  "name": "@freestyle-sh/with-vnc",
   "version": "0.0.1",
   "packageManager": "pnpm@10.11.0",
   "private": false,
   "dependencies": {
-    "@freestyle-sh/with-type-browser": "workspace:^",
-    "@freestyle-sh/with-type-computer-use": "workspace:^",
-    "@freestyle-sh/with-type-vnc": "workspace:^",
-    "@freestyle-sh/with-vnc": "workspace:^",
-    "freestyle": "^0.1.46"
+    "@freestyle-sh/with-type-vnc": "workspace:^"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
     "pkgroll": "^2.11.2",
     "typescript": "^5.8.3"
   },
