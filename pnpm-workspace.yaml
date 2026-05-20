@@ -16,4 +16,5 @@ packages:
   - "with-claude-code"
   - "with-vscode"
   - "with-deno"
+  - "with-chromium"
   - "types/*"

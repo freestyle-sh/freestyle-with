@@ -30,6 +30,18 @@ importers:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2)(typescript@5.9.3)
 
+  types/with-type-browser:
+    dependencies:
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
+
+  types/with-type-computer-use:
+    dependencies:
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
+
   types/with-type-js:
     dependencies:
       '@freestyle-sh/with-type-js-deps':
@@ -54,11 +66,42 @@ importers:
         specifier: ^0.1.46
         version: 0.1.46
 
+  types/with-type-vnc:
+    dependencies:
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
+
   with-bun:
     dependencies:
       '@freestyle-sh/with-type-js':
         specifier: workspace:*
         version: link:../types/with-type-js
+      freestyle:
+        specifier: ^0.1.46
+        version: 0.1.46
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.7
+      pkgroll:
+        specifier: ^2.11.2
+        version: 2.21.5(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  with-chromium:
+    dependencies:
+      '@freestyle-sh/with-type-browser':
+        specifier: workspace:^
+        version: link:../types/with-type-browser
+      '@freestyle-sh/with-type-computer-use':
+        specifier: workspace:^
+        version: link:../types/with-type-computer-use
+      '@freestyle-sh/with-type-vnc':
+        specifier: workspace:^
+        version: link:../types/with-type-vnc
       freestyle:
         specifier: ^0.1.46
         version: 0.1.46
